@@ -5,6 +5,7 @@ from maze import Maze
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QLabel, QPushButton,
                                QVBoxLayout, QWidget)
+import os
 
 
 class MainWindow(QWidget):
@@ -34,9 +35,16 @@ class MainWindow(QWidget):
 
 
 if __name__ == "__main__":
+
+    cwd = os.getcwd()
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
+
     app = QApplication(sys.argv)
 
     main_window = MainWindow()
     main_window.show()
 
     sys.exit(app.exec())
+    os.chdir(cwd)

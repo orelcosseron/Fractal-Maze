@@ -29,7 +29,7 @@ class Maze(QWidget):
         self.win = False
 
         i = 0
-        f = open(r"labyrinth", "r")
+        f = open(r"./labyrinth", "r")
         lines = f.readlines()
 
         for line in lines:
