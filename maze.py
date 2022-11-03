@@ -84,6 +84,13 @@ class Maze(QWidget):
                     "./images/exits/exit_" + str(self.exits[exit_spec[0]].orientation) + ".png")).setOffset(int(bits[-1])*20-5, int(bits[-2])*20-5)
                 continue
 
+            if line[:6] == "PLAYER":
+                player_init = line.split(" ")
+                self.player_init = (int(player_init[1]), int(player_init[2]))
+                self.player = Player(self.player_init[1], self.player_init[0])
+                self.player_map = self.scene.addPixmap(self.player.pixmap)
+                continue
+
             row = []
             for j in range(len(line) >> 1):
                 tile = Tile(i, j, line[2*j:2*j+2])
@@ -91,14 +98,13 @@ class Maze(QWidget):
                 row += [tile]
             i += 1
             self.tiles += [row]
-        self.player = Player(1, 1)
-        self.player_map = self.scene.addPixmap(self.player.pixmap)
+
         self.move_player()
 
     @Slot()
     def reset(self):
-        self.player.x = 2
-        self.player.y = 3
+        self.player.x = self.player_init[1]
+        self.player.y = self.player_init[0]
         self.block_stack = [""]
         self.move_player()
 
