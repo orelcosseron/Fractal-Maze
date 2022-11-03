@@ -91,7 +91,7 @@ class Maze(QWidget):
                 row += [tile]
             i += 1
             self.tiles += [row]
-        self.player = Player(2, 3)
+        self.player = Player(1, 1)
         self.player_map = self.scene.addPixmap(self.player.pixmap)
         self.move_player()
 
