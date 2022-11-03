@@ -31,3 +31,8 @@ class Hud(QWidget):
             :-1]) + " " + str(new_depth))
         self.block.setText(" ".join(
             self.block.text().split(" ")[:-1]) + " " + new_block)
+
+    @Slot()
+    def game_over(self, b):
+        self.depth.setText("")
+        self.block.setText("Congratulations, you escaped!")

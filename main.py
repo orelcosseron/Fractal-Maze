@@ -20,6 +20,8 @@ class MainWindow(QWidget):
         self.reset.clicked.connect(self.hud.reset)
 
         self.maze.change_block.connect(self.hud.update)
+        self.maze.game_over.connect(self.hud.game_over)
+        self.maze.game_over.connect(self.reset.setEnabled)
 
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.hud)
