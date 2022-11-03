@@ -7,7 +7,7 @@ class Hud(QWidget):
         QWidget.__init__(self)
 
         self.depth = QLabel("Depth: 0")
-        self.block = QLabel("Block: ")
+        self.block = QLabel("Position: 0")
 
         self.layout = QHBoxLayout(self)
 
@@ -16,21 +16,16 @@ class Hud(QWidget):
 
     @Slot()
     def reset(self):
-        self.depth.setText(" ".join(self.depth.text().split(" ")[
-            :-1]) + " 0")
-        self.block.setText(" ".join(
-            self.block.text().split(" ")[:-1]) + " ")
+        self.depth.setText("Depth: 0")
+        self.block.setText("Position: 0")
 
     @Slot()
-    def update(self, new_block="", inward=True):
-        new_depth = self.depth.text()
-        new_depth = new_depth.split(" ")[-1]
-        new_depth = int(new_depth)
-        new_depth += 1 if inward else -1
-        self.depth.setText(" ".join(self.depth.text().split(" ")[
-            :-1]) + " " + str(new_depth))
-        self.block.setText(" ".join(
-            self.block.text().split(" ")[:-1]) + " " + new_block)
+    def update(self, stack):
+        self.depth.setText("Depth: " + str(len(stack)-1))
+        str_stack = "Position: 0"
+        for block in stack[1:]:
+            str_stack += " <- " + block
+        self.block.setText(str_stack)
 
     @Slot()
     def game_over(self, b):

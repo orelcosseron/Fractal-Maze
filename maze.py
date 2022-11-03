@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt, Signal, Slot
 
 class Maze(QWidget):
 
-    change_block = Signal(str, bool)
+    change_block = Signal(list)
     game_over = Signal(bool)
 
     def __init__(self):
@@ -25,7 +25,7 @@ class Maze(QWidget):
         self.tiles = []
         self.blocks = {}
         self.exits = {}
-        self.block_stack = [""]
+        self.block_stack = ["0"]
         self.win = False
 
         i = 0
@@ -110,7 +110,7 @@ class Maze(QWidget):
         if not self.win:
             self.player.x = self.player_init[1]
             self.player.y = self.player_init[0]
-            self.block_stack = [""]
+            self.block_stack = ["0"]
             self.move_player()
 
     def move_player(self):
@@ -164,7 +164,7 @@ class Maze(QWidget):
                 south = self.exits[tile.exit_name].orientation == 2
                 west = self.exits[tile.exit_name].orientation == 3
                 if (key == Qt.Key_Z and north) or (key == Qt.Key_Q and west) or (key == Qt.Key_S and south) or (key == Qt.Key_D and east):
-                    if self.block_stack[-1] != '':
+                    if self.block_stack[-1] != '0':
                         current_block = self.blocks[self.block_stack[-1]]
 
                         if tile.exit_name in current_block.exits.keys():
@@ -187,7 +187,7 @@ class Maze(QWidget):
         else:
             self.block_stack.pop()
 
-        if self.block_stack[-1] == '':
+        if self.block_stack[-1] == '0':
             for exit in self.exits.values():
                 exit.show()
         else:
@@ -197,4 +197,4 @@ class Maze(QWidget):
                     self.exits[exit].show()
                 else:
                     self.exits[exit].hide()
-        self.change_block.emit(self.block_stack[-1], inward)
+        self.change_block.emit(self.block_stack)
