@@ -7,6 +7,7 @@ class Player(QObject):
     def __init__(self, row, col, scene, parent=None):
         QObject.__init__(self, parent)
         self.m_pixmap = scene.addPixmap(QPixmap("./images/player.png"))
+        self.m_pixmap.setZValue(9999)
 
         self.row = col
         self.col = row

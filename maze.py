@@ -76,6 +76,8 @@ class Maze(QWidget):
 
             self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.scene)
                             for j in range(len(line) >> 1)]]
+            for tile in self.tiles[-1]:
+                self.change_block.connect(tile.refresh)
             i += 1
 
     @ Slot()
@@ -83,6 +85,9 @@ class Maze(QWidget):
         if not self.win:
             self.player.reset()
             self.block_stack = ["0"]
+            for row in self.tiles:
+                for tile in row:
+                    tile.reset()
             self.block_changed()
 
     def update_player(self, key):
@@ -95,12 +100,16 @@ class Maze(QWidget):
             west = tile.type & 1 == 1
             if key == Qt.Key_Z and north:
                 self.player.row -= 1
-            elif key == Qt.Key_Q and west:
-                self.player.col -= 1
-            elif key == Qt.Key_S and south:
-                self.player.row += 1
+                tile.addPath(8)
             elif key == Qt.Key_D and east:
                 self.player.col += 1
+                tile.addPath(4)
+            elif key == Qt.Key_S and south:
+                self.player.row += 1
+                tile.addPath(2)
+            elif key == Qt.Key_Q and west:
+                self.player.col -= 1
+                tile.addPath(1)
 
             if tile.is_teleport:
                 north = tile.teleport_direction == 4
@@ -109,12 +118,20 @@ class Maze(QWidget):
                 west = tile.teleport_direction == 3
                 if key == Qt.Key_Z and north:
                     self.player.row -= tile.teleport_reach
-                elif key == Qt.Key_Q and west:
-                    self.player.col -= tile.teleport_reach
-                elif key == Qt.Key_S and south:
-                    self.player.row += tile.teleport_reach
+                    tile.addPath(8)
+                    self.tiles[self.player.row][self.player.col].addPath(2)
                 elif key == Qt.Key_D and east:
                     self.player.col += tile.teleport_reach
+                    tile.addPath(4)
+                    self.tiles[self.player.row][self.player.col].addPath(1)
+                elif key == Qt.Key_S and south:
+                    self.player.row += tile.teleport_reach
+                    tile.addPath(2)
+                    self.tiles[self.player.row][self.player.col].addPath(8)
+                elif key == Qt.Key_Q and west:
+                    self.player.col -= tile.teleport_reach
+                    tile.addPath(1)
+                    self.tiles[self.player.row][self.player.col].addPath(4)
 
             if tile.is_link:
                 exit_tile = self.tiles[self.exits[tile.link_name]
@@ -130,7 +147,10 @@ class Maze(QWidget):
                     self.player.row = exit_tile.row
                     self.player.col = exit_tile.col
                     self.block_stack += [tile.block_name]
+                    tile.addPath(1 << (3-(link_orientation % 4)))
                     self.block_changed()
+                    self.tiles[self.player.row][self.player.col].addPath(
+                        1 << (3-((link_orientation + 2) % 4)))
                     teleport = link_orientation
 
             if tile.is_exit:
@@ -145,8 +165,11 @@ class Maze(QWidget):
                         if tile.exit_name in current_block.exits.keys():
                             self.player.row = current_block.exits[tile.exit_name][0]
                             self.player.col = current_block.exits[tile.exit_name][1]
+                            tile.addPath(1 << (3-(tile.exit_orientation % 4)))
                             self.block_stack.pop()
                             self.block_changed()
+                            self.tiles[self.player.row][self.player.col].addPath(
+                                1 << (3-((tile.exit_orientation + 2) % 4)))
                             teleport = tile.exit_orientation
                     else:
                         self.win = True

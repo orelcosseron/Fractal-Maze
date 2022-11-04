@@ -1,4 +1,4 @@
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, Slot
 from PySide6.QtGui import QPixmap
 
 
@@ -14,6 +14,10 @@ class Tile(QObject):
         self.background = scene.addPixmap(
             QPixmap("./images/tiles/tile_" + str(tile_type).zfill(2) + ".png"))
         self.background.setOffset(self.col*20, self.row*20)
+        self.visited = {}
+        self.path = {}
+        self.depth = 0
+        self.block = "0"
 
     def setTeleporter(self, is_teleport, direction=None, reach=None, scene=None):
         if self.is_teleport == is_teleport:
@@ -70,3 +74,45 @@ class Tile(QObject):
     def showExit(self):
         if self.is_exit:
             self.exit.show()
+
+    def addPath(self, direction):
+        if self.depth in self.visited.keys():
+            if self.block in self.visited[self.depth]:
+                self.visited[self.depth][self.block] |= direction
+                self.path[self.depth][self.block].setPixmap(QPixmap(
+                    "./images/paths/path_" + str(self.visited[self.depth][self.block]).zfill(2) + ".png"))
+            else:
+                self.visited[self.depth][self.block] = direction
+                self.path[self.depth][self.block] = self.background.scene().addPixmap(QPixmap(
+                    "./images/paths/path_" + str(self.visited[self.depth][self.block]).zfill(2) + ".png"))
+                self.path[self.depth][self.block].setOffset(
+                    self.col*20-10, self.row*20-10)
+        else:
+            self.visited[self.depth] = {}
+            self.visited[self.depth][self.block] = direction
+            self.path[self.depth] = {}
+            self.path[self.depth][self.block] = self.background.scene().addPixmap(QPixmap(
+                "./images/paths/path_" + str(self.visited[self.depth][self.block]).zfill(2) + ".png"))
+            self.path[self.depth][self.block].setOffset(
+                self.col*20-10, self.row*20-10)
+
+    @ Slot()
+    def refresh(self, stack):
+        if self.depth in self.path.keys():
+            if self.block in self.path[self.depth].keys():
+                self.path[self.depth][self.block].hide()
+        self.depth = len(stack)-1
+        self.block = stack[-1]
+        if self.depth in self.path.keys():
+            if self.block in self.path[self.depth].keys():
+                self.path[self.depth][self.block].show()
+
+    @ Slot()
+    def reset(self):
+        if self.depth in self.path.keys():
+            if self.block in self.path[self.depth].keys():
+                self.path[self.depth][self.block].hide()
+        self.path = {}
+        self.visited = {}
+        self.block = "0"
+        self.depth = 0
