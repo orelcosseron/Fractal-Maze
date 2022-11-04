@@ -15,14 +15,30 @@
 # 13 = 1101 => Exits NEW
 # 14 = 1110 => Exits NSE
 # 15 = 1111 => Exits NSEW
-
+#
 # TELEPORT DESCRIPTION
+# Format: TELEPORT row col orientation+reach
+# Example: TELEPORT 00 00 1+4 => Teleport from (0,0) to (0,4) (4 tiles east)
+#
+# BLOCK DESCRIPTION
+# Format: BLOCK name row col
+#
+# EXIT DESCRIPTION
+# Format: EXIT name orientation row col
+# 
+# LINK DESCRIPTION
+# Format: LINK block_name exit_name row col
+#
+# PLAYER DESCRIPTION
+# Format: PLAYER row col
+#
+# ORIENTATION VALUES:
 # 1 => Teleport E
 # 2 => Teleport S
 # 3 => Teleport W
 # 4 => Teleport N
-# Example: 1+4 => 4 tiles East
 
+# MAZE
 06050505050302000000020000
 10040505011010000405130300
 12010000001010020000000802
