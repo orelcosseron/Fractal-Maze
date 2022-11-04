@@ -3,17 +3,17 @@ from PySide6.QtGui import QPixmap
 
 
 class Block(QObject):
-    def __init__(self, x, y, name, scene):
+    def __init__(self, row, col, name, scene):
         QObject.__init__(self)
-        self.x = x
-        self.y = y
+        self.row = row
+        self.col = col
         self.name = name
 
         self.exits = {}
 
         self.pixmap = scene.addPixmap(
             QPixmap("./images/blocks/" + name + ".png"))
-        self.pixmap.setOffset(x*20, y*20)
+        self.pixmap.setOffset(self.col*20, self.row*20)
 
-    def add_exit(self, name, x, y):
-        self.exits[name] = (x, y)
+    def add_exit(self, name, row, col):
+        self.exits[name] = (row, col)

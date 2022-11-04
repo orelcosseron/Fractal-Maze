@@ -4,14 +4,14 @@ from PySide6.QtGui import QPixmap
 
 class Player(QObject):
 
-    def __init__(self, x, y, scene, parent=None):
+    def __init__(self, row, col, scene, parent=None):
         QObject.__init__(self, parent)
         self.m_pixmap = scene.addPixmap(QPixmap("./images/player.png"))
 
-        self.x = x
-        self.y = y
-        self.x_init = x
-        self.y_init = y
+        self.row = col
+        self.col = row
+        self.row_init = row
+        self.col_init = col
 
         self.move(animate=False)
 
@@ -52,8 +52,9 @@ class Player(QObject):
                     duration=50,
                 )
                 self.m_animation_2.setStartValue(
-                    QPointF(self.x*20, self.y*20)-teleport_direction)
-                self.m_animation_2.setEndValue(QPointF(self.x*20, self.y*20))
+                    QPointF(self.col*20, self.row*20)-teleport_direction)
+                self.m_animation_2.setEndValue(
+                    QPointF(self.col*20, self.row*20))
 
                 self.m_animation = QSequentialAnimationGroup()
                 self.m_animation.addAnimation(self.m_animation_1)
@@ -67,13 +68,14 @@ class Player(QObject):
                     duration=100,
                 )
                 self.m_animation_1.setStartValue(self.offset())
-                self.m_animation_1.setEndValue(QPointF(self.x*20, self.y*20))
+                self.m_animation_1.setEndValue(
+                    QPointF(self.col*20, self.row*20))
                 self.m_animation_1.start()
 
         else:
-            self.setOffset(QPointF(self.x*20, self.y*20))
+            self.setOffset(QPointF(self.col*20, self.row*20))
 
     def reset(self):
-        self.x = self.x_init
-        self.y = self.y_init
+        self.row = self.row_init
+        self.col = self.col_init
         self.move(animate=False)

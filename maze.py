@@ -38,42 +38,43 @@ class Maze(QWidget):
                 continue
 
             if line[:8] == "TELEPORT":
-                bits = line.split(" ")
-                teleport_spec = bits[3].split("+")
-                self.tiles[int(bits[1])][int(bits[2])].setTeleporter(
-                    True, teleport_spec[0], teleport_spec[1], self.scene)
+                _, teleport_row, teleport_col, teleport_spec = line.split(" ")
+                teleport_direction, teleport_reach = teleport_spec.split("+")
+                self.tiles[int(teleport_row)][int(teleport_col)].setTeleporter(
+                    True, int(teleport_direction), int(teleport_reach), self.scene)
                 continue
 
             if line[:5] == "BLOCK":
-                bits = line.split(" ")
-                self.blocks[bits[1]] = Block(
-                    int(bits[3]), int(bits[2]), bits[1], self.scene)
+                _, block_name, block_row, block_col = line.split(" ")
+                self.blocks[block_name] = Block(
+                    int(block_row), int(block_col), block_name, self.scene)
                 continue
 
             if line[:4] == "LINK":
-                bits = line.split(" ")
-                exit_tile = self.tiles[self.exits[bits[2]]
-                                       [0]][self.exits[bits[2]][1]]
-                self.tiles[int(bits[-2])][int(bits[-1])].setLink(
-                    True, bits[1], exit_tile, self.scene)
-                self.blocks[bits[1]].add_exit(
-                    bits[2], int(bits[-2]), int(bits[-1]))
+                _, block_name, exit_name, link_row, link_col = line.split(" ")
+                exit_tile = self.tiles[self.exits[exit_name]
+                                       [0]][self.exits[exit_name][1]]
+                self.tiles[int(link_row)][int(link_col)].setLink(
+                    True, block_name, exit_tile, self.scene)
+                self.blocks[block_name].add_exit(
+                    exit_name, int(link_row), int(link_col))
                 continue
 
             if line[:4] == "EXIT":
-                bits = line.split(" ")
-                self.tiles[int(bits[-2])][int(bits[-1])
-                                          ].setExit(True, bits[1], bits[2], self.scene)
-                self.exits[bits[1]] = (int(bits[-2]), int(bits[-1]))
+                _, exit_name, exit_orientation, exit_row, exit_col = line.split(
+                    " ")
+                self.tiles[int(exit_row)][int(exit_col)].setExit(
+                    True, exit_name, int(exit_orientation), self.scene)
+                self.exits[exit_name] = (int(exit_row), int(exit_col))
                 continue
 
             if line[:6] == "PLAYER":
-                player_init = line.split(" ")
+                _, player_row, player_col = line.split(" ")
                 self.player = Player(
-                    int(player_init[2]), int(player_init[1]), self.scene)
+                    int(player_row), int(player_col), self.scene)
                 continue
 
-            self.tiles += [[Tile(i, j, line[2*j:2*j+2], self.scene)
+            self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.scene)
                             for j in range(len(line) >> 1)]]
             i += 1
 
@@ -87,19 +88,19 @@ class Maze(QWidget):
     def update_player(self, key):
         if not self.win:
             teleport = None
-            tile = self.tiles[self.player.y][self.player.x]
+            tile = self.tiles[self.player.row][self.player.col]
             north = tile.type & 8 == 8
             east = tile.type & 4 == 4
             south = tile.type & 2 == 2
             west = tile.type & 1 == 1
             if key == Qt.Key_Z and north:
-                self.player.y -= 1
+                self.player.row -= 1
             elif key == Qt.Key_Q and west:
-                self.player.x -= 1
+                self.player.col -= 1
             elif key == Qt.Key_S and south:
-                self.player.y += 1
+                self.player.row += 1
             elif key == Qt.Key_D and east:
-                self.player.x += 1
+                self.player.col += 1
 
             if tile.is_teleport:
                 north = tile.teleport_direction == 4
@@ -107,13 +108,13 @@ class Maze(QWidget):
                 south = tile.teleport_direction == 2
                 west = tile.teleport_direction == 3
                 if key == Qt.Key_Z and north:
-                    self.player.y -= tile.teleport_reach
+                    self.player.row -= tile.teleport_reach
                 elif key == Qt.Key_Q and west:
-                    self.player.x -= tile.teleport_reach
+                    self.player.col -= tile.teleport_reach
                 elif key == Qt.Key_S and south:
-                    self.player.y += tile.teleport_reach
+                    self.player.row += tile.teleport_reach
                 elif key == Qt.Key_D and east:
-                    self.player.x += tile.teleport_reach
+                    self.player.col += tile.teleport_reach
 
             if tile.is_link:
                 exit_tile = self.tiles[self.exits[tile.link_name]
@@ -126,8 +127,8 @@ class Maze(QWidget):
                 south = link_orientation == 2
                 west = link_orientation == 3
                 if (key == Qt.Key_Z and north) or (key == Qt.Key_Q and west) or (key == Qt.Key_S and south) or (key == Qt.Key_D and east):
-                    self.player.x = exit_tile.y
-                    self.player.y = exit_tile.x
+                    self.player.row = exit_tile.row
+                    self.player.col = exit_tile.col
                     self.block_stack += [tile.block_name]
                     self.block_changed()
                     teleport = link_orientation
@@ -142,8 +143,8 @@ class Maze(QWidget):
                         current_block = self.blocks[self.block_stack[-1]]
 
                         if tile.exit_name in current_block.exits.keys():
-                            self.player.x = current_block.exits[tile.exit_name][1]
-                            self.player.y = current_block.exits[tile.exit_name][0]
+                            self.player.row = current_block.exits[tile.exit_name][0]
+                            self.player.col = current_block.exits[tile.exit_name][1]
                             self.block_stack.pop()
                             self.block_changed()
                             teleport = tile.exit_orientation
