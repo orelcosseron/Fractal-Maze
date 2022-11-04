@@ -46,9 +46,8 @@ class Maze(QWidget):
 
             if line[:5] == "BLOCK":
                 bits = line.split(" ")
-                self.blocks[bits[1]] = Block(bits[3], bits[2], bits[1])
-                self.scene.addPixmap(
-                    self.blocks[bits[1]].pixmap).setOffset(int(bits[3])*20, int(bits[2])*20)
+                self.blocks[bits[1]] = Block(
+                    int(bits[3]), int(bits[2]), bits[1], self.scene)
                 continue
 
             if line[:4] == "LINK":
@@ -83,6 +82,7 @@ class Maze(QWidget):
         if not self.win:
             self.player.reset()
             self.block_stack = ["0"]
+            self.block_changed()
 
     def update_player(self, key):
         if not self.win:
@@ -125,7 +125,8 @@ class Maze(QWidget):
                 if (key == Qt.Key_Z and north) or (key == Qt.Key_Q and west) or (key == Qt.Key_S and south) or (key == Qt.Key_D and east):
                     self.player.x = exit_tile.y
                     self.player.y = exit_tile.x
-                    self.block_changed(new_block=tile.block_name)
+                    self.block_stack += [tile.block_name]
+                    self.block_changed()
                     animate = False
 
             if tile.is_exit:
@@ -140,7 +141,8 @@ class Maze(QWidget):
                         if tile.exit_name in current_block.exits.keys():
                             self.player.x = current_block.exits[tile.exit_name][1]
                             self.player.y = current_block.exits[tile.exit_name][0]
-                            self.block_changed(inward=False)
+                            self.block_stack.pop()
+                            self.block_changed()
                             animate = False
                     else:
                         self.win = True
@@ -153,12 +155,7 @@ class Maze(QWidget):
 
             self.player.move(animate)
 
-    def block_changed(self, new_block="", inward=True):
-        if inward:
-            self.block_stack += [new_block]
-        else:
-            self.block_stack.pop()
-
+    def block_changed(self):
         if self.block_stack[-1] == '0':
             for exit in self.exits.values():
                 self.tiles[exit[0]][exit[1]].showExit()
