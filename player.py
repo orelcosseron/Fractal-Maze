@@ -1,4 +1,4 @@
-from PySide6.QtCore import QObject, Property, QPointF, QPropertyAnimation
+from PySide6.QtCore import QObject, Property, QPointF, QPropertyAnimation, QSequentialAnimationGroup
 from PySide6.QtGui import QPixmap
 
 
@@ -7,12 +7,7 @@ class Player(QObject):
     def __init__(self, x, y, scene, parent=None):
         QObject.__init__(self, parent)
         self.m_pixmap = scene.addPixmap(QPixmap("./images/player.png"))
-        self.m_animation = QPropertyAnimation(
-            self,
-            b"pos",
-            parent=self,
-            duration=100,
-        )
+
         self.x = x
         self.y = y
         self.x_init = x
@@ -28,11 +23,53 @@ class Player(QObject):
 
     pos = Property(QPointF, offset, setOffset)
 
-    def move(self, animate=True):
+    def move(self, animate=True, teleport=None):
         if animate:
-            self.m_animation.setStartValue(self.offset())
-            self.m_animation.setEndValue(QPointF(self.x*20, self.y*20))
-            self.m_animation.start()
+            if teleport is not None:
+                if teleport == 1:
+                    teleport_direction = QPointF(5, 0)
+                elif teleport == 2:
+                    teleport_direction = QPointF(0, 5)
+                elif teleport == 3:
+                    teleport_direction = QPointF(-5, 0)
+                elif teleport == 4:
+                    teleport_direction = QPointF(0, -5)
+
+                self.m_animation_1 = QPropertyAnimation(
+                    self,
+                    b"pos",
+                    parent=self,
+                    duration=50,
+                )
+                self.m_animation_1.setStartValue(self.offset())
+                self.m_animation_1.setEndValue(
+                    self.offset()+teleport_direction)
+
+                self.m_animation_2 = QPropertyAnimation(
+                    self,
+                    b"pos",
+                    parent=self,
+                    duration=50,
+                )
+                self.m_animation_2.setStartValue(
+                    QPointF(self.x*20, self.y*20)-teleport_direction)
+                self.m_animation_2.setEndValue(QPointF(self.x*20, self.y*20))
+
+                self.m_animation = QSequentialAnimationGroup()
+                self.m_animation.addAnimation(self.m_animation_1)
+                self.m_animation.addAnimation(self.m_animation_2)
+                self.m_animation.start()
+            else:
+                self.m_animation_1 = QPropertyAnimation(
+                    self,
+                    b"pos",
+                    parent=self,
+                    duration=100,
+                )
+                self.m_animation_1.setStartValue(self.offset())
+                self.m_animation_1.setEndValue(QPointF(self.x*20, self.y*20))
+                self.m_animation_1.start()
+
         else:
             self.setOffset(QPointF(self.x*20, self.y*20))
 

@@ -86,7 +86,7 @@ class Maze(QWidget):
 
     def update_player(self, key):
         if not self.win:
-            animate = True
+            teleport = None
             tile = self.tiles[self.player.y][self.player.x]
             north = tile.type & 8 == 8
             east = tile.type & 4 == 4
@@ -118,16 +118,19 @@ class Maze(QWidget):
             if tile.is_link:
                 exit_tile = self.tiles[self.exits[tile.link_name]
                                        [0]][self.exits[tile.link_name][1]]
-                north = exit_tile.exit_orientation == 2
-                east = exit_tile.exit_orientation == 3
-                south = exit_tile.exit_orientation == 4
-                west = exit_tile.exit_orientation == 1
+                link_orientation = exit_tile.exit_orientation + 2
+                if link_orientation > 4:
+                    link_orientation -= 4
+                north = link_orientation == 4
+                east = link_orientation == 1
+                south = link_orientation == 2
+                west = link_orientation == 3
                 if (key == Qt.Key_Z and north) or (key == Qt.Key_Q and west) or (key == Qt.Key_S and south) or (key == Qt.Key_D and east):
                     self.player.x = exit_tile.y
                     self.player.y = exit_tile.x
                     self.block_stack += [tile.block_name]
                     self.block_changed()
-                    animate = False
+                    teleport = link_orientation
 
             if tile.is_exit:
                 north = tile.exit_orientation == 4
@@ -143,7 +146,7 @@ class Maze(QWidget):
                             self.player.y = current_block.exits[tile.exit_name][0]
                             self.block_stack.pop()
                             self.block_changed()
-                            animate = False
+                            teleport = tile.exit_orientation
                     else:
                         self.win = True
                         self.scene.clear()
@@ -153,7 +156,7 @@ class Maze(QWidget):
                         self.game_over.emit(False)
                         return
 
-            self.player.move(animate)
+            self.player.move(teleport=teleport)
 
     def block_changed(self):
         if self.block_stack[-1] == '0':
