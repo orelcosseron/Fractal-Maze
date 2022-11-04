@@ -90,9 +90,8 @@ class Maze(QWidget):
 
             if line[:6] == "PLAYER":
                 player_init = line.split(" ")
-                self.player_init = (int(player_init[1]), int(player_init[2]))
-                self.player = Player(self.player_init[1], self.player_init[0])
-                self.player_map = self.scene.addPixmap(self.player.pixmap)
+                self.player = Player(
+                    int(player_init[2]), int(player_init[1]), self.scene)
                 continue
 
             row = []
@@ -103,23 +102,15 @@ class Maze(QWidget):
             i += 1
             self.tiles += [row]
 
-        self.move_player()
-
     @Slot()
     def reset(self):
         if not self.win:
-            self.player.x = self.player_init[1]
-            self.player.y = self.player_init[0]
+            self.player.reset()
             self.block_stack = ["0"]
-            self.move_player()
-
-    def move_player(self):
-        if not self.win:
-            self.player_map.setOffset(
-                self.player.x*20, self.player.y*20)
 
     def update_player(self, key):
         if not self.win:
+            animate = True
             tile = self.tiles[self.player.y][self.player.x]
             north = tile.type & 8 == 8
             east = tile.type & 4 == 4
@@ -157,6 +148,7 @@ class Maze(QWidget):
                     self.player.x = self.exits[tile.link_name].y
                     self.player.y = self.exits[tile.link_name].x
                     self.block_changed(new_block=tile.block_name)
+                    animate = False
 
             if tile.is_exit:
                 north = self.exits[tile.exit_name].orientation == 4
@@ -171,6 +163,7 @@ class Maze(QWidget):
                             self.player.x = current_block.exits[tile.exit_name][1]
                             self.player.y = current_block.exits[tile.exit_name][0]
                             self.block_changed(inward=False)
+                            animate = False
                     else:
                         self.win = True
                         self.scene.clear()
@@ -179,7 +172,7 @@ class Maze(QWidget):
                             self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
                         self.game_over.emit(False)
 
-            self.move_player()
+            self.player.move(animate)
 
     def block_changed(self, new_block="", inward=True):
         if inward:
