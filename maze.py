@@ -101,15 +101,19 @@ class Maze(QWidget):
             if key == Qt.Key_Z and north:
                 self.player.row -= 1
                 tile.addPath(8)
+                self.tiles[self.player.row][self.player.col].addPath(2)
             elif key == Qt.Key_D and east:
                 self.player.col += 1
                 tile.addPath(4)
+                self.tiles[self.player.row][self.player.col].addPath(1)
             elif key == Qt.Key_S and south:
                 self.player.row += 1
                 tile.addPath(2)
+                self.tiles[self.player.row][self.player.col].addPath(8)
             elif key == Qt.Key_Q and west:
                 self.player.col -= 1
                 tile.addPath(1)
+                self.tiles[self.player.row][self.player.col].addPath(4)
 
             if tile.is_teleport:
                 north = tile.teleport_direction == 4

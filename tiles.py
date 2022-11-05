@@ -16,8 +16,7 @@ class Tile(QObject):
         self.background.setOffset(self.col*20, self.row*20)
         self.visited = {}
         self.path = {}
-        self.depth = 0
-        self.block = "0"
+        self.hash = hash("-".join(["0"]))
 
     def setTeleporter(self, is_teleport, direction=None, reach=None, scene=None):
         if self.is_teleport == is_teleport:
@@ -76,43 +75,29 @@ class Tile(QObject):
             self.exit.show()
 
     def addPath(self, direction):
-        if self.depth in self.visited.keys():
-            if self.block in self.visited[self.depth]:
-                self.visited[self.depth][self.block] |= direction
-                self.path[self.depth][self.block].setPixmap(QPixmap(
-                    "./images/paths/path_" + str(self.visited[self.depth][self.block]).zfill(2) + ".png"))
-            else:
-                self.visited[self.depth][self.block] = direction
-                self.path[self.depth][self.block] = self.background.scene().addPixmap(QPixmap(
-                    "./images/paths/path_" + str(self.visited[self.depth][self.block]).zfill(2) + ".png"))
-                self.path[self.depth][self.block].setOffset(
-                    self.col*20-10, self.row*20-10)
+        if self.hash in self.visited.keys():
+            self.visited[self.hash] ^= direction
+            self.path[self.hash].setPixmap(QPixmap(
+                "./images/paths/path_" + str(self.visited[self.hash]).zfill(2) + ".png"))
         else:
-            self.visited[self.depth] = {}
-            self.visited[self.depth][self.block] = direction
-            self.path[self.depth] = {}
-            self.path[self.depth][self.block] = self.background.scene().addPixmap(QPixmap(
-                "./images/paths/path_" + str(self.visited[self.depth][self.block]).zfill(2) + ".png"))
-            self.path[self.depth][self.block].setOffset(
+            self.visited[self.hash] = direction
+            self.path[self.hash] = self.background.scene().addPixmap(QPixmap(
+                "./images/paths/path_" + str(self.visited[self.hash]).zfill(2) + ".png"))
+            self.path[self.hash].setOffset(
                 self.col*20-10, self.row*20-10)
 
     @ Slot()
     def refresh(self, stack):
-        if self.depth in self.path.keys():
-            if self.block in self.path[self.depth].keys():
-                self.path[self.depth][self.block].hide()
-        self.depth = len(stack)-1
-        self.block = stack[-1]
-        if self.depth in self.path.keys():
-            if self.block in self.path[self.depth].keys():
-                self.path[self.depth][self.block].show()
+        if self.hash in self.path.keys():
+            self.path[self.hash].hide()
+        self.hash = hash("-".join(stack))
+        if self.hash in self.path.keys():
+            self.path[self.hash].show()
 
     @ Slot()
     def reset(self):
-        if self.depth in self.path.keys():
-            if self.block in self.path[self.depth].keys():
-                self.path[self.depth][self.block].hide()
+        if self.hash in self.path.keys():
+            self.path[self.hash].hide()
         self.path = {}
         self.visited = {}
-        self.block = "0"
-        self.depth = 0
+        self.hash = hash("-".join(["0"]))
