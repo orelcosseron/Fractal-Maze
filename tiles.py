@@ -84,7 +84,7 @@ class Tile(QObject):
             self.path[self.hash] = self.background.scene().addPixmap(QPixmap(
                 "./images/paths/path_" + str(self.visited[self.hash]).zfill(2) + ".png"))
             self.path[self.hash].setOffset(
-                self.col*20-10, self.row*20-10)
+                self.col*20, self.row*20)
 
     @ Slot()
     def refresh(self, stack):
