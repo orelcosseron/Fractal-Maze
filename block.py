@@ -1,4 +1,4 @@
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, Property
 from PySide6.QtGui import QPixmap
 
 
@@ -17,3 +17,11 @@ class Block(QObject):
 
     def add_exit(self, name, row, col):
         self.exits[name] = (row, col)
+
+    def _opacity(self):
+        return self.pixmap.opacity()
+
+    def _setOpacity(self, opacity):
+        self.pixmap.setOpacity(opacity)
+
+    opacity = Property(float, _opacity, _setOpacity)
