@@ -24,6 +24,7 @@ class Line(QObject):
         self.y1 = self.line.line().y1()
         self.y2 = self.line.line().y2()
         self.full_length = 10
+        self.line.setOpacity(0)
 
     def setZValue(self, z):
         self.line.setZValue(z)
@@ -41,7 +42,10 @@ class Line(QObject):
                 self.x1 -= 5
             self.full_length += 5
 
-    def hide(self, outward=True):
+    def hide(self, outward=True, now=False):
+        if now:
+            self.line.setOpacity(0)
+            return
         self.inward = not outward
         self.m_animation = QPropertyAnimation(
             self,
@@ -64,7 +68,10 @@ class Line(QObject):
         self.animation.addAnimation(self.opacity_animation)
         self.animation.start()
 
-    def show(self, inward=True):
+    def show(self, inward=True, now=False):
+        if now:
+            self.line.setOpacity(1)
+            return
         self.inward = inward
         self.line.show()
         self.line.setOpacity(1)

@@ -203,20 +203,20 @@ class Tile(QObject):
 
     @ Slot()
     def refresh(self, stack):
-        self.line[8].hide()
-        self.line[4].hide()
-        self.line[2].hide()
-        self.line[1].hide()
+        self.line[8].hide(now=True)
+        self.line[4].hide(now=True)
+        self.line[2].hide(now=True)
+        self.line[1].hide(now=True)
         self.hash = hash("-".join(stack))
         if self.hash in self.visited.keys():
             if self.visited[self.hash] & 8 == 8:
-                self.line[8].show()
+                self.line[8].show(now=True)
             if self.visited[self.hash] & 4 == 4:
-                self.line[4].show()
+                self.line[4].show(now=True)
             if self.visited[self.hash] & 2 == 2:
-                self.line[2].show()
+                self.line[2].show(now=True)
             if self.visited[self.hash] & 1 == 1:
-                self.line[1].show()
+                self.line[1].show(now=True)
 
     @ Slot()
     def reset(self):
