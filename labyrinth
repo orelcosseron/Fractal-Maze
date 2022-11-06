@@ -38,7 +38,7 @@
 # 3 => Teleport W
 # 4 => Teleport N
 
-
+OUTSIDE_COLOR #82be38
 BACKGROUND_COLOR #477f1e
 PATH_COLOR #b77c44
 

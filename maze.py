@@ -21,7 +21,6 @@ class Maze(QWidget):
         self.view = QGraphicsView(self.scene)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setStyleSheet("background-color: #82be38")
         self.layout.addWidget(self.view)
 
         self.tiles = []
@@ -46,6 +45,11 @@ class Maze(QWidget):
             if line == "" or line[0] == "#":
                 continue
 
+            if line[:13] == "OUTSIDE_COLOR":
+                _, self.outside_color = line.split(" ")
+                self.view.setStyleSheet(
+                    "background-color: " + self.outside_color)
+                continue
             if line[:16] == "BACKGROUND_COLOR":
                 _, self.background_color = line.split(" ")
                 continue
@@ -360,7 +364,8 @@ class Maze(QWidget):
 
     def block_changed(self):
         if self.block_stack[-1] == '0':
-            self.view.setStyleSheet("background-color: #82be38")
+            self.view.setStyleSheet(
+                "background-color: " + self.outside_color)
             for exit in self.exits:
                 self.tiles[self.exits[exit][0]
                            ][self.exits[exit][1]].showExit(exit)
