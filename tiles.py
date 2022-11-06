@@ -1,5 +1,6 @@
-from PySide6.QtCore import QObject, Slot
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import QObject, Slot, Property, QPropertyAnimation, QRect
+from PySide6.QtGui import QPixmap, QBrush, QColor
+from time import sleep
 
 
 class Tile(QObject):
@@ -15,8 +16,28 @@ class Tile(QObject):
             QPixmap("./images/tiles/tile_" + str(tile_type).zfill(2) + ".png"))
         self.background.setOffset(self.col*20, self.row*20)
         self.visited = {}
-        self.path = {}
         self.hash = hash("-".join(["0"]))
+
+        self.path = {}
+        self.path[8] = scene.addLine(10, 10, 10,  0, QColor("red"))
+        self.path[4] = scene.addLine(10, 10, 20, 10, QColor("red"))
+        self.path[2] = scene.addLine(10, 10, 10, 20, QColor("red"))
+        self.path[1] = scene.addLine(10, 10,  0, 10, QColor("red"))
+
+        self.path[8].setPos(self.col*20, self.row*20)
+        self.path[4].setPos(self.col*20, self.row*20)
+        self.path[2].setPos(self.col*20, self.row*20)
+        self.path[1].setPos(self.col*20, self.row*20)
+
+        self.path[8].setZValue(2)
+        self.path[4].setZValue(2)
+        self.path[2].setZValue(2)
+        self.path[1].setZValue(2)
+
+        self.path[8].hide()
+        self.path[4].hide()
+        self.path[2].hide()
+        self.path[1].hide()
 
     def setTeleporter(self, is_teleport, direction=None, reach=None, scene=None):
         if self.is_teleport == is_teleport:
@@ -76,23 +97,31 @@ class Tile(QObject):
 
     def addPath(self, direction):
         if self.hash in self.visited.keys():
+            if self.visited[self.hash] & direction != 0:
+                self.path[direction].hide()
+            else:
+                self.path[direction].show()
             self.visited[self.hash] ^= direction
-            self.path[self.hash].setPixmap(QPixmap(
-                "./images/paths/path_" + str(self.visited[self.hash]).zfill(2) + ".png"))
         else:
             self.visited[self.hash] = direction
-            self.path[self.hash] = self.background.scene().addPixmap(QPixmap(
-                "./images/paths/path_" + str(self.visited[self.hash]).zfill(2) + ".png"))
-            self.path[self.hash].setOffset(
-                self.col*20, self.row*20)
+            self.path[direction].show()
 
     @ Slot()
     def refresh(self, stack):
-        if self.hash in self.path.keys():
-            self.path[self.hash].hide()
+        self.path[8].hide()
+        self.path[4].hide()
+        self.path[2].hide()
+        self.path[1].hide()
         self.hash = hash("-".join(stack))
-        if self.hash in self.path.keys():
-            self.path[self.hash].show()
+        if self.hash in self.visited.keys():
+            if self.visited[self.hash] & 8 == 8:
+                self.path[8].show()
+            if self.visited[self.hash] & 4 == 4:
+                self.path[4].show()
+            if self.visited[self.hash] & 2 == 2:
+                self.path[2].show()
+            if self.visited[self.hash] & 1 == 1:
+                self.path[1].show()
 
     @ Slot()
     def reset(self):
