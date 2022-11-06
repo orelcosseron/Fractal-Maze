@@ -46,11 +46,19 @@ class Maze(QWidget):
             if line == "" or line[0] == "#":
                 continue
 
+            if line[:16] == "BACKGROUND_COLOR":
+                _, self.background_color = line.split(" ")
+                continue
+
+            if line[:10] == "PATH_COLOR":
+                _, self.path_color = line.split(" ")
+                continue
+
             if line[:8] == "TELEPORT":
                 _, teleport_row, teleport_col, teleport_spec = line.split(" ")
                 teleport_direction, teleport_reach = teleport_spec.split("+")
                 self.tiles[int(teleport_row)][int(teleport_col)].setTeleporter(
-                    True, int(teleport_direction), int(teleport_reach), self.scene)
+                    int(teleport_direction), int(teleport_reach))
                 continue
 
             if line[:5] == "BLOCK":
@@ -65,7 +73,7 @@ class Maze(QWidget):
                 exit_tile = self.tiles[self.exits[exit_name]
                                        [0]][self.exits[exit_name][1]]
                 self.tiles[int(link_row)][int(link_col)].setLink(
-                    True, block_name, exit_tile, self.scene)
+                    block_name, exit_tile, exit_name)
                 self.blocks[block_name].add_exit(
                     exit_name, int(link_row), int(link_col))
                 continue
@@ -74,7 +82,7 @@ class Maze(QWidget):
                 _, exit_name, exit_orientation, exit_row, exit_col = line.split(
                     " ")
                 self.tiles[int(exit_row)][int(exit_col)].setExit(
-                    True, exit_name, int(exit_orientation), self.scene)
+                    exit_name, int(exit_orientation))
                 self.exits[exit_name] = (int(exit_row), int(exit_col))
                 continue
 
@@ -84,7 +92,7 @@ class Maze(QWidget):
                     int(player_row), int(player_col), self.scene)
                 continue
 
-            self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.scene)
+            self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.background_color, self.path_color, self.scene)
                             for j in range(len(line) >> 1)]]
             for tile in self.tiles[-1]:
                 self.change_block.connect(tile.refresh)
@@ -251,68 +259,90 @@ class Maze(QWidget):
                 tile.addPath(1)
                 self.tiles[self.player.row][self.player.col].addPath(4)
 
-            if tile.is_teleport:
-                north = tile.teleport_direction == 4
-                east = tile.teleport_direction == 1
-                south = tile.teleport_direction == 2
-                west = tile.teleport_direction == 3
+            if tile.isTeleporter():
+                north = 4 in tile.teleporter_reach
+                east = 1 in tile.teleporter_reach
+                south = 2 in tile.teleporter_reach
+                west = 3 in tile.teleporter_reach
                 if key == Qt.Key_Z and north:
-                    self.player.row -= tile.teleport_reach
+                    self.player.row -= tile.teleporter_reach[4]
                     tile.addPath(8)
                     self.tiles[self.player.row][self.player.col].addPath(2)
                 elif key == Qt.Key_D and east:
-                    self.player.col += tile.teleport_reach
+                    self.player.col += tile.teleporter_reach[1]
                     tile.addPath(4)
                     self.tiles[self.player.row][self.player.col].addPath(1)
                 elif key == Qt.Key_S and south:
-                    self.player.row += tile.teleport_reach
+                    self.player.row += tile.teleporter_reach[2]
                     tile.addPath(2)
                     self.tiles[self.player.row][self.player.col].addPath(8)
                 elif key == Qt.Key_Q and west:
-                    self.player.col -= tile.teleport_reach
+                    self.player.col -= tile.teleporter_reach[3]
                     tile.addPath(1)
                     self.tiles[self.player.row][self.player.col].addPath(4)
 
-            if tile.is_link:
-                exit_tile = self.tiles[self.exits[tile.link_name]
-                                       [0]][self.exits[tile.link_name][1]]
-                link_orientation = exit_tile.exit_orientation + 2
-                if link_orientation > 4:
-                    link_orientation -= 4
-                north = link_orientation == 4
-                east = link_orientation == 1
-                south = link_orientation == 2
-                west = link_orientation == 3
-                if (key == Qt.Key_Z and north) or (key == Qt.Key_Q and west) or (key == Qt.Key_S and south) or (key == Qt.Key_D and east):
+            if tile.isLink():
+                north = 4 in tile.linked_block
+                east = 1 in tile.linked_block
+                south = 2 in tile.linked_block
+                west = 3 in tile.linked_block
+
+                block_name, exit_name = None, None
+                if key == Qt.Key_Z and north:
+                    block_name, exit_name = tile.linked_block[4]
+                elif key == Qt.Key_Q and west:
+                    block_name, exit_name = tile.linked_block[3]
+                elif key == Qt.Key_S and south:
+                    block_name, exit_name = tile.linked_block[2]
+                elif key == Qt.Key_D and east:
+                    block_name, exit_name = tile.linked_block[1]
+
+                if block_name is not None:
+                    exit_tile = self.tiles[self.exits[exit_name]
+                                           [0]][self.exits[exit_name][1]]
+                    link_orientation = (
+                        exit_tile.exitOrientation(exit_name) + 2) % 4
                     self.player.row = exit_tile.row
                     self.player.col = exit_tile.col
-                    self.block_stack += [tile.block_name]
-                    tile.addPath(1 << (3-(link_orientation % 4)))
+                    tile.addPath(1 << (3-link_orientation))
+                    self.block_stack += [block_name]
                     self.block_changed()
                     self.tiles[self.player.row][self.player.col].addPath(
-                        1 << (3-((link_orientation + 2) % 4)))
+                        1 << (3-(exit_tile.exitOrientation(exit_name) % 4)))
                     teleport = link_orientation
                     self.zoomIn.addAnimation(self.blur_animation)
                     self.zoomIn.start()
 
-            if tile.is_exit:
-                north = tile.exit_orientation == 4
-                east = tile.exit_orientation == 1
-                south = tile.exit_orientation == 2
-                west = tile.exit_orientation == 3
-                if (key == Qt.Key_Z and north) or (key == Qt.Key_Q and west) or (key == Qt.Key_S and south) or (key == Qt.Key_D and east):
+            if tile.isExit():
+                north = 4 in tile.exit_name
+                east = 1 in tile.exit_name
+                south = 2 in tile.exit_name
+                west = 3 in tile.exit_name
+
+                exit_name = None
+                if key == Qt.Key_Z and north:
+                    exit_name = tile.exit_name[4]
+                if key == Qt.Key_Q and west:
+                    exit_name = tile.exit_name[3]
+                if key == Qt.Key_S and south:
+                    exit_name = tile.exit_name[2]
+                if key == Qt.Key_D and east:
+                    exit_name = tile.exit_name[1]
+
+                if exit_name is not None:
                     if self.block_stack[-1] != '0':
                         current_block = self.blocks[self.block_stack[-1]]
 
-                        if tile.exit_name in current_block.exits.keys():
-                            self.player.row = current_block.exits[tile.exit_name][0]
-                            self.player.col = current_block.exits[tile.exit_name][1]
-                            tile.addPath(1 << (3-(tile.exit_orientation % 4)))
+                        if exit_name in current_block.exits.keys():
+                            self.player.row = current_block.exits[exit_name][0]
+                            self.player.col = current_block.exits[exit_name][1]
+                            tile.addPath(
+                                1 << (3-(tile.exitOrientation(exit_name) % 4)))
                             self.block_stack.pop()
                             self.block_changed()
                             self.tiles[self.player.row][self.player.col].addPath(
-                                1 << (3-((tile.exit_orientation + 2) % 4)))
-                            teleport = tile.exit_orientation
+                                1 << (3-((tile.exitOrientation(exit_name) + 2) % 4)))
+                            teleport = tile.exitOrientation(exit_name)
                             self.zoomOut.addAnimation(self.blur_animation)
                             self.zoomOut.start()
                     else:
@@ -331,16 +361,17 @@ class Maze(QWidget):
     def block_changed(self):
         if self.block_stack[-1] == '0':
             self.view.setStyleSheet("background-color: #82be38")
-            for exit in self.exits.values():
-                self.tiles[exit[0]][exit[1]].showExit()
+            for exit in self.exits:
+                self.tiles[self.exits[exit][0]
+                           ][self.exits[exit][1]].showExit(exit)
         else:
             current_block = self.blocks[self.block_stack[-1]]
             self.view.setStyleSheet("background-color: " + current_block.color)
             for exit in self.exits.keys():
                 if exit in current_block.exits.keys():
                     self.tiles[self.exits[exit][0]
-                               ][self.exits[exit][1]].showExit()
+                               ][self.exits[exit][1]].showExit(exit)
                 else:
                     self.tiles[self.exits[exit][0]
-                               ][self.exits[exit][1]].hideExit()
+                               ][self.exits[exit][1]].hideExit(exit)
         self.change_block.emit(self.block_stack)

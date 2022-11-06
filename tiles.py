@@ -1,132 +1,227 @@
-from PySide6.QtCore import QObject, Slot, Property, QPropertyAnimation, QRect
-from PySide6.QtGui import QPixmap, QBrush, QColor
+from PySide6.QtCore import Qt, QObject, Slot, Property, QPropertyAnimation, QRect
+from PySide6.QtGui import QPixmap, QBrush, QColor, QLinearGradient
 from time import sleep
 
 
 class Tile(QObject):
-    def __init__(self, row, col, tile_type, scene):
+    def __init__(self, row, col, tile_type, background_color, path_color, scene):
         QObject.__init__(self)
         self.row = row
         self.col = col
         self.type = tile_type
-        self.is_teleport = False
-        self.is_link = False
         self.is_exit = False
-        self.background = scene.addPixmap(
-            QPixmap("./images/tiles/tile_" + str(tile_type).zfill(2) + ".png"))
-        self.background.setOffset(self.col*20, self.row*20)
         self.visited = {}
         self.hash = hash("-".join(["0"]))
 
-        self.path = {}
-        self.path[8] = scene.addLine(10, 10, 10,  0, QColor("red"))
-        self.path[4] = scene.addLine(10, 10, 20, 10, QColor("red"))
-        self.path[2] = scene.addLine(10, 10, 10, 20, QColor("red"))
-        self.path[1] = scene.addLine(10, 10,  0, 10, QColor("red"))
+        scene.addRect(QRect(
+            self.col*20, self.row*20, 20, 20), Qt.NoPen, QColor(background_color))
 
-        self.path[8].setPos(self.col*20, self.row*20)
-        self.path[4].setPos(self.col*20, self.row*20)
-        self.path[2].setPos(self.col*20, self.row*20)
-        self.path[1].setPos(self.col*20, self.row*20)
+        if tile_type & 8 != 0:
+            scene.addRect(QRect(self.col * 20 + 5, self.row * 20,
+                          10, 15), Qt.NoPen, QColor(path_color))
+        if tile_type & 4 != 0:
+            scene.addRect(QRect(self.col * 20 + 5, self.row *
+                          20 + 5, 15, 10), Qt.NoPen, QColor(path_color))
+        if tile_type & 2 != 0:
+            scene.addRect(QRect(self.col * 20 + 5, self.row *
+                          20 + 5, 10, 15), Qt.NoPen, QColor(path_color))
+        if tile_type & 1 != 0:
+            scene.addRect(QRect(self.col * 20,     self.row *
+                          20 + 5, 15, 10), Qt.NoPen, QColor(path_color))
 
-        self.path[8].setZValue(2)
-        self.path[4].setZValue(2)
-        self.path[2].setZValue(2)
-        self.path[1].setZValue(2)
+        teleporter_gradient_N = QLinearGradient(
+            self.col * 20, self.row * 20, self.col * 20, self.row * 20 - 5)
+        teleporter_gradient_N.setColorAt(0, QColor(path_color))
+        teleporter_gradient_N.setColorAt(1, QColor(path_color).darker(150))
+        teleporter_gradient_E = QLinearGradient(
+            self.col * 20 + 20, self.row * 20, self.col * 20 + 25, self.row * 20)
+        teleporter_gradient_E.setColorAt(0, QColor(path_color))
+        teleporter_gradient_E.setColorAt(1, QColor(path_color).darker(150))
+        teleporter_gradient_S = QLinearGradient(
+            self.col * 20, self.row * 20 + 20, self.col * 20, self.row * 20 + 25)
+        teleporter_gradient_S.setColorAt(0, QColor(path_color))
+        teleporter_gradient_S.setColorAt(1, QColor(path_color).darker(150))
+        teleporter_gradient_W = QLinearGradient(
+            self.col * 20, self.row * 20, self.col * 20-5, self.row * 20)
+        teleporter_gradient_W.setColorAt(0, QColor(path_color))
+        teleporter_gradient_W.setColorAt(1, QColor(path_color).darker(150))
 
-        self.path[8].hide()
-        self.path[4].hide()
-        self.path[2].hide()
-        self.path[1].hide()
+        self.teleporter_reach = {}
+        self.teleporters = {}
+        self.teleporters[4] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 - 5, 10, 20), Qt.NoPen, teleporter_gradient_N)
+        self.teleporters[1] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 + 5, 20, 10), Qt.NoPen, teleporter_gradient_E)
+        self.teleporters[2] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 + 5, 10, 20), Qt.NoPen, teleporter_gradient_S)
+        self.teleporters[3] = scene.addRect(QRect(
+            self.col * 20 - 5, self.row * 20 + 5, 20, 10), Qt.NoPen, teleporter_gradient_W)
 
-    def setTeleporter(self, is_teleport, direction=None, reach=None, scene=None):
-        if self.is_teleport == is_teleport:
-            return
+        for teleporter in self.teleporters.values():
+            teleporter.setZValue(2)
+            teleporter.hide()
 
-        self.is_teleport = is_teleport
-        if not self.is_teleport:
-            self.teleporter.scene().removeItem(self.teleporter)
-            del (self.teleporter_direction, self.teleport_reach, self.teleporter)
-            return
-        self.teleport_direction = direction
-        self.teleport_reach = reach
-        self.teleporter = scene.addPixmap(QPixmap(
-            "./images/teleporters/teleport_" + str(direction) + ".png"))
-        self.teleporter.setOffset(self.col*20-5, self.row*20-5)
+        link_gradient_N = QLinearGradient(
+            self.col * 20, self.row * 20, self.col * 20, self.row * 20 - 5)
+        link_gradient_N.setColorAt(0, QColor(path_color))
+        link_gradient_N.setColorAt(1, QColor(0, 0, 0, 0))
+        link_gradient_E = QLinearGradient(
+            self.col * 20 + 20, self.row * 20, self.col * 20 + 25, self.row * 20)
+        link_gradient_E.setColorAt(0, QColor(path_color))
+        link_gradient_E.setColorAt(1, QColor(0, 0, 0, 0))
+        link_gradient_S = QLinearGradient(
+            self.col * 20, self.row * 20 + 20, self.col * 20, self.row * 20 + 25)
+        link_gradient_S.setColorAt(0, QColor(path_color))
+        link_gradient_S.setColorAt(1, QColor(0, 0, 0, 0))
+        link_gradient_W = QLinearGradient(
+            self.col * 20, self.row * 20, self.col * 20-5, self.row * 20)
+        link_gradient_W.setColorAt(0, QColor(path_color))
+        link_gradient_W.setColorAt(1, QColor(0, 0, 0, 0))
 
-    def setExit(self, is_exit, exit_name=None, orientation=None, scene=None):
-        if self.is_exit == is_exit:
-            return
+        self.linked_block = {}
+        self.link_reach = {}
+        self.links = {}
+        self.links[4] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 - 5, 10, 20), Qt.NoPen, link_gradient_N)
+        self.links[1] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 + 5, 20, 10), Qt.NoPen, link_gradient_E)
+        self.links[2] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 + 5, 10, 20), Qt.NoPen, link_gradient_S)
+        self.links[3] = scene.addRect(QRect(
+            self.col * 20 - 5, self.row * 20 + 5, 20, 10), Qt.NoPen, link_gradient_W)
 
-        self.is_exit = is_exit
-        if not self.is_exit:
-            self.exit.scene().removeItem(self.exit)
-            del (self.exit_name, self.exit, self.exit_orientation)
-            return
-        self.exit_name = exit_name
-        self.exit = scene.addPixmap(QPixmap(
-            "./images/exits/exit_" + str(orientation) + ".png"))
-        self.exit.setOffset(self.col*20-5, self.row*20-5)
-        self.exit_orientation = orientation
+        for link in self.links.values():
+            link.setZValue(2)
+            link.hide()
 
-    def setLink(self, is_link, block_name=None, exit_tile=None, scene=None):
-        if self.is_link == is_link:
-            return
+        self.exit_name = {}
+        self.exit_bg = {}
+        self.exit_bg[4] = scene.addRect(QRect(
+            self.col * 20, self.row * 20 - 5, 20, 5), Qt.NoPen, QColor(background_color))
+        self.exit_bg[1] = scene.addRect(QRect(
+            self.col * 20 + 20, self.row * 20, 5, 20), Qt.NoPen, QColor(background_color))
+        self.exit_bg[2] = scene.addRect(QRect(
+            self.col * 20, self.row * 20 + 20, 20, 5), Qt.NoPen, QColor(background_color))
+        self.exit_bg[3] = scene.addRect(QRect(
+            self.col * 20 - 5, self.row * 20, 5, 20), Qt.NoPen, QColor(background_color))
 
-        self.is_link = is_link
-        if not self.is_link:
-            self.link.scene().removeItem(self.link)
-            del (self.block_name, self.link_name, self.link)
-            return
-        self.block_name = block_name
-        self.link_name = exit_tile.exit_name
+        for exit in self.exit_bg.values():
+            exit.setZValue(2)
+            exit.hide()
+
+        self.exits_path = {}
+        self.exits_path[4] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 - 5, 10, 20), Qt.NoPen, QColor(path_color))
+        self.exits_path[1] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 + 5, 20, 10), Qt.NoPen, QColor(path_color))
+        self.exits_path[2] = scene.addRect(QRect(
+            self.col * 20 + 5, self.row * 20 + 5, 10, 20), Qt.NoPen, QColor(path_color))
+        self.exits_path[3] = scene.addRect(QRect(
+            self.col * 20 - 5, self.row * 20 + 5, 20, 10), Qt.NoPen, QColor(path_color))
+
+        for exit in self.exits_path.values():
+            exit.setZValue(2)
+            exit.hide()
+
+        self.line = {}
+        self.line[8] = scene.addLine(
+            self.col * 20 + 10, self.row * 20 + 10, self.col * 20 + 10, self.row * 20,      QColor("red"))
+        self.line[4] = scene.addLine(
+            self.col * 20 + 10, self.row * 20 + 10, self.col * 20 + 20, self.row * 20 + 10, QColor("red"))
+        self.line[2] = scene.addLine(
+            self.col * 20 + 10, self.row * 20 + 10, self.col * 20 + 10, self.row * 20 + 20, QColor("red"))
+        self.line[1] = scene.addLine(
+            self.col * 20 + 10, self.row * 20 + 10, self.col * 20,      self.row * 20 + 10, QColor("red"))
+
+        for line in self.line.values():
+            line.setZValue(3)
+            line.hide()
+
+    def setTeleporter(self, direction=None, reach=None):
+        self.teleporter_reach[direction] = reach
+        self.teleporters[direction].show()
+
+    def unsetTeleporter(self, direction):
+        self.teleporter_reach.pop(direction)
+        self.teleporters[direction].hide()
+
+    def isTeleporter(self):
+        return len(self.teleporter_reach) > 0
+
+    def setLink(self, block_name, exit_tile, exit_name):
+        orientation = exit_tile.exitOrientation(exit_name) + 2
+        if orientation > 4:
+            orientation -= 4
+        self.links[orientation].show()
+        self.linked_block[orientation] = (block_name, exit_name)
+
+    def unsetLink(self, block_name, exit_tile):
         orientation = exit_tile.exit_orientation + 2
         if orientation > 4:
             orientation -= 4
-        self.link = scene.addPixmap(QPixmap(
-            "./images/links/link_" + str(orientation) + ".png"))
-        self.link.setOffset(self.col*20-5, self.row*20-5)
+        self.links[orientation].hide()
+        self.linked_block.pop(orientation)
 
-    def hideExit(self):
-        if self.is_exit:
-            self.exit.hide()
+    def isLink(self):
+        return len(self.linked_block) > 0
 
-    def showExit(self):
-        if self.is_exit:
-            self.exit.show()
+    def setExit(self, exit_name=None, orientation=None):
+        self.exit_name[orientation] = exit_name
+        self.exit_bg[orientation].show()
+        self.exits_path[orientation].show()
+
+    def unsetExit(self, orientation=None):
+        self.exit_name.pop(orientation)
+        self.exit_bg[orientation].hide()
+        self.exits_path[orientation].hide()
+
+    def showExit(self, exit_name):
+        orientation = self.exitOrientation(exit_name)
+        self.exit_bg[orientation].show()
+        self.exits_path[orientation].show()
+
+    def hideExit(self, exit_name):
+        orientation = self.exitOrientation(exit_name)
+        self.exit_bg[orientation].hide()
+        self.exits_path[orientation].hide()
+
+    def isExit(self):
+        return len(self.exit_name) > 0
+
+    def exitOrientation(self, exit_name):
+        orientations = list(self.exit_name.keys())
+        index = list(self.exit_name.values()).index(exit_name)
+        return orientations[index]
 
     def addPath(self, direction):
         if self.hash in self.visited.keys():
             if self.visited[self.hash] & direction != 0:
-                self.path[direction].hide()
+                self.line[direction].hide()
             else:
-                self.path[direction].show()
+                self.line[direction].show()
             self.visited[self.hash] ^= direction
         else:
             self.visited[self.hash] = direction
-            self.path[direction].show()
+            self.line[direction].show()
 
     @ Slot()
     def refresh(self, stack):
-        self.path[8].hide()
-        self.path[4].hide()
-        self.path[2].hide()
-        self.path[1].hide()
+        self.line[8].hide()
+        self.line[4].hide()
+        self.line[2].hide()
+        self.line[1].hide()
         self.hash = hash("-".join(stack))
         if self.hash in self.visited.keys():
             if self.visited[self.hash] & 8 == 8:
-                self.path[8].show()
+                self.line[8].show()
             if self.visited[self.hash] & 4 == 4:
-                self.path[4].show()
+                self.line[4].show()
             if self.visited[self.hash] & 2 == 2:
-                self.path[2].show()
+                self.line[2].show()
             if self.visited[self.hash] & 1 == 1:
-                self.path[1].show()
+                self.line[1].show()
 
     @ Slot()
     def reset(self):
-        if self.hash in self.path.keys():
-            self.path[self.hash].hide()
-        self.path = {}
         self.visited = {}
         self.hash = hash("-".join(["0"]))
