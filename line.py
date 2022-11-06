@@ -23,9 +23,23 @@ class Line(QObject):
         self.x2 = self.line.line().x2()
         self.y1 = self.line.line().y1()
         self.y2 = self.line.line().y2()
+        self.full_length = 10
 
     def setZValue(self, z):
         self.line.setZValue(z)
+
+    def setExit(self, exit):
+        self.exit = exit
+        if self.exit:
+            if self.direction == 8:
+                self.y1 -= 5
+            if self.direction == 4:
+                self.x2 += 5
+            if self.direction == 2:
+                self.y2 += 5
+            if self.direction == 1:
+                self.x1 -= 5
+            self.full_length += 5
 
     def hide(self, outward=True):
         self.inward = not outward
@@ -35,7 +49,7 @@ class Line(QObject):
             parent=self,
             duration=50,
         )
-        self.m_animation.setStartValue(10)
+        self.m_animation.setStartValue(self.full_length)
         self.m_animation.setEndValue(0)
 
         self.animation = QSequentialAnimationGroup()
@@ -61,7 +75,7 @@ class Line(QObject):
             duration=50,
         )
         self.m_animation.setStartValue(0)
-        self.m_animation.setEndValue(10)
+        self.m_animation.setEndValue(self.full_length)
 
         self.animation = QSequentialAnimationGroup()
 

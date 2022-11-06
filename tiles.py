@@ -164,11 +164,13 @@ class Tile(QObject):
         self.exit_name[orientation] = exit_name
         self.exit_bg[orientation].show()
         self.exits_path[orientation].show()
+        self.line[1 << (3-orientation % 4)].setExit(True)
 
     def unsetExit(self, orientation=None):
         self.exit_name.pop(orientation)
         self.exit_bg[orientation].hide()
         self.exits_path[orientation].hide()
+        self.line[1 << (3-orientation % 4)].setExit(False)
 
     def showExit(self, exit_name):
         orientation = self.exitOrientation(exit_name)
