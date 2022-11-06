@@ -21,7 +21,7 @@
 # Example: TELEPORT 00 00 1+4 => Teleport from (0,0) to (0,4) (4 tiles east)
 #
 # BLOCK DESCRIPTION
-# Format: BLOCK name row col
+# Format: BLOCK name row col #RRGGBB
 #
 # EXIT DESCRIPTION
 # Format: EXIT name orientation row col
@@ -56,10 +56,10 @@
 TELEPORT 05 09 2+2
 TELEPORT 07 09 4+2
 
-BLOCK A 02 02
-BLOCK B 02 08
-BLOCK C 08 02
-BLOCK D 08 08
+BLOCK A 02 02 #fff7ac
+BLOCK B 02 08 #a3d0e7
+BLOCK C 08 02 #daa5c1
+BLOCK D 08 08 #cbcbcb
 
 EXIT 01 4 00 02
 EXIT 02 4 00 06

@@ -21,7 +21,7 @@ class Maze(QWidget):
         self.view = QGraphicsView(self.scene)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setStyleSheet("background-color: #477f1e")
+        self.view.setStyleSheet("background-color: #82be38")
         self.layout.addWidget(self.view)
 
         self.tiles = []
@@ -54,9 +54,10 @@ class Maze(QWidget):
                 continue
 
             if line[:5] == "BLOCK":
-                _, block_name, block_row, block_col = line.split(" ")
+                _, block_name, block_row, block_col, block_color = line.split(
+                    " ")
                 self.blocks[block_name] = Block(
-                    int(block_row), int(block_col), block_name, self.scene)
+                    int(block_row), int(block_col), block_name, block_color, self.scene)
                 continue
 
             if line[:4] == "LINK":
@@ -222,6 +223,8 @@ class Maze(QWidget):
                 for tile in row:
                     tile.reset()
             self.block_changed()
+            self.zoomOut.addAnimation(self.blur_animation)
+            self.zoomOut.start()
 
     def update_player(self, key):
         if not self.win:
@@ -327,10 +330,12 @@ class Maze(QWidget):
 
     def block_changed(self):
         if self.block_stack[-1] == '0':
+            self.view.setStyleSheet("background-color: #82be38")
             for exit in self.exits.values():
                 self.tiles[exit[0]][exit[1]].showExit()
         else:
             current_block = self.blocks[self.block_stack[-1]]
+            self.view.setStyleSheet("background-color: " + current_block.color)
             for exit in self.exits.keys():
                 if exit in current_block.exits.keys():
                     self.tiles[self.exits[exit][0]

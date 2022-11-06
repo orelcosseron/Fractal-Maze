@@ -3,11 +3,12 @@ from PySide6.QtGui import QPixmap
 
 
 class Block(QObject):
-    def __init__(self, row, col, name, scene):
+    def __init__(self, row, col, name, color, scene):
         QObject.__init__(self)
         self.row = row
         self.col = col
         self.name = name
+        self.color = color
 
         self.exits = {}
 
