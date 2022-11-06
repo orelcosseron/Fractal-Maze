@@ -91,9 +91,9 @@ class Maze(QWidget):
                 continue
 
             if line[:6] == "PLAYER":
-                _, player_row, player_col = line.split(" ")
+                _, player_row, player_col, player_color = line.split(" ")
                 self.player = Player(
-                    int(player_row), int(player_col), self.scene)
+                    int(player_row), int(player_col), player_color, self.scene)
                 continue
 
             self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.background_color, self.path_color, self.scene)
@@ -313,7 +313,7 @@ class Maze(QWidget):
                     self.block_changed()
                     self.tiles[self.player.row][self.player.col].addPath(
                         1 << (3-(exit_tile.exitOrientation(exit_name) % 4)))
-                    teleport = link_orientation
+                    teleport = link_orientation if link_orientation > 0 else 4
                     self.zoomIn.addAnimation(self.blur_animation)
                     self.zoomIn.start()
 
