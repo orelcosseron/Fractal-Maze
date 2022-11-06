@@ -19,7 +19,7 @@ class MainWindow(QWidget):
 
         self.reset = QPushButton("Reset")
         self.reset.setStyleSheet(
-            "background-color: black; color: white; font-family: Impact; margin-left:50%; margin-right: 50%")
+            ":enabled{background-color: black; color: white; font-family: Impact; margin-left:50%; margin-right: 50%} :disabled{background-color:#c0c0c0; color:#c0c0c0; border:0px}")
         self.reset.clicked.connect(self.maze.reset)
         self.reset.clicked.connect(self.hud.reset)
 
