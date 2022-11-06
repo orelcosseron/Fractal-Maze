@@ -28,14 +28,14 @@ class Player(QObject):
     def move(self, animate=True, teleport=None):
         if animate:
             if teleport is not None:
-                if teleport == 1:
+                if teleport == 0:
+                    teleport_direction = QPointF(0, -5)
+                elif teleport == 1:
                     teleport_direction = QPointF(5, 0)
                 elif teleport == 2:
                     teleport_direction = QPointF(0, 5)
                 elif teleport == 3:
                     teleport_direction = QPointF(-5, 0)
-                elif teleport == 4:
-                    teleport_direction = QPointF(0, -5)
 
                 self.m_animation_1 = QPropertyAnimation(
                     self,
