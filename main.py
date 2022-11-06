@@ -11,12 +11,15 @@ import os
 class MainWindow(QWidget):
     def __init__(self):
         QWidget.__init__(self)
+        self.setStyleSheet("background-color: #c0c0c0")
 
         self.hud = Hud()
 
         self.maze = Maze()
 
         self.reset = QPushButton("Reset")
+        self.reset.setStyleSheet(
+            "background-color: black; color: white; font-family: Impact; margin-left:50%; margin-right: 50%")
         self.reset.clicked.connect(self.maze.reset)
         self.reset.clicked.connect(self.hud.reset)
 
@@ -45,6 +48,7 @@ if __name__ == "__main__":
 
     main_window = MainWindow()
     main_window.show()
+    main_window.setFixedSize(main_window.size())
 
     sys.exit(app.exec())
     os.chdir(cwd)
