@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt, QObject, Slot, Property, QPropertyAnimation, QRect
 from PySide6.QtGui import QPixmap, QBrush, QColor, QLinearGradient
-from time import sleep
+from line import Line
 
 
 class Tile(QObject):
@@ -124,15 +124,10 @@ class Tile(QObject):
             exit.hide()
 
         self.line = {}
-        self.line[8] = scene.addLine(
-            self.col * 20 + 10, self.row * 20 + 10, self.col * 20 + 10, self.row * 20,      QColor("red"))
-        self.line[4] = scene.addLine(
-            self.col * 20 + 10, self.row * 20 + 10, self.col * 20 + 20, self.row * 20 + 10, QColor("red"))
-        self.line[2] = scene.addLine(
-            self.col * 20 + 10, self.row * 20 + 10, self.col * 20 + 10, self.row * 20 + 20, QColor("red"))
-        self.line[1] = scene.addLine(
-            self.col * 20 + 10, self.row * 20 + 10, self.col * 20,      self.row * 20 + 10, QColor("red"))
-
+        self.line[8] = Line(self.row, self.col, 8, scene)
+        self.line[4] = Line(self.row, self.col, 4, scene)
+        self.line[2] = Line(self.row, self.col, 2, scene)
+        self.line[1] = Line(self.row, self.col, 1, scene)
         for line in self.line.values():
             line.setZValue(3)
             line.hide()
@@ -193,16 +188,16 @@ class Tile(QObject):
         index = list(self.exit_name.values()).index(exit_name)
         return orientations[index]
 
-    def addPath(self, direction):
+    def drawPath(self, direction, inward=True):
         if self.hash in self.visited.keys():
             if self.visited[self.hash] & direction != 0:
                 self.line[direction].hide()
             else:
-                self.line[direction].show()
+                self.line[direction].show(inward)
             self.visited[self.hash] ^= direction
         else:
             self.visited[self.hash] = direction
-            self.line[direction].show()
+            self.line[direction].show(inward)
 
     @ Slot()
     def refresh(self, stack):
