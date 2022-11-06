@@ -191,7 +191,7 @@ class Tile(QObject):
     def drawPath(self, direction, inward=True):
         if self.hash in self.visited.keys():
             if self.visited[self.hash] & direction != 0:
-                self.line[direction].hide()
+                self.line[direction].hide(inward)
             else:
                 self.line[direction].show(inward)
             self.visited[self.hash] ^= direction

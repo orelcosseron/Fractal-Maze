@@ -19,16 +19,41 @@ class Line(QObject):
             self.line = scene.addLine(
                 col * 20, row * 20 + 10, col * 20 + 10, row * 20 + 10, QColor("red"))
         self.m_length = 0
+        self.x1 = self.line.line().x1()
+        self.x2 = self.line.line().x2()
+        self.y1 = self.line.line().y1()
+        self.y2 = self.line.line().y2()
 
     def setZValue(self, z):
         self.line.setZValue(z)
 
-    def hide(self, inward=True):
-        self.line.hide()
+    def hide(self, outward=True):
+        self.inward = not outward
+        self.m_animation = QPropertyAnimation(
+            self,
+            b"length",
+            parent=self,
+            duration=50,
+        )
+        self.m_animation.setStartValue(10)
+        self.m_animation.setEndValue(0)
+
+        self.animation = QSequentialAnimationGroup()
+
+        if outward:
+            self.animation.addPause(50)
+        self.animation.addAnimation(self.m_animation)
+        self.opacity_animation = QPropertyAnimation(
+            self, b"opacity", parent=self, duration=0)
+        self.opacity_animation.setStartValue(1)
+        self.opacity_animation.setEndValue(0)
+        self.animation.addAnimation(self.opacity_animation)
+        self.animation.start()
 
     def show(self, inward=True):
         self.inward = inward
         self.line.show()
+        self.line.setOpacity(1)
         self.m_animation = QPropertyAnimation(
             self,
             b"length",
@@ -54,33 +79,24 @@ class Line(QObject):
         return self.line.line().length()
 
     def _setLength(self, length):
-        line = self.line.line()
         if self.inward:
             if self.direction == 8:
-                self.line.setLine(line.x1(), line.y1(),
-                                  line.x2(), line.y1() + length)
+                self.line.setLine(self.x1, self.y1, self.x2, self.y1 + length)
             if self.direction == 4:
-                self.line.setLine(line.x2() - length, line.y1(),
-                                  line.x2(), line.y2())
+                self.line.setLine(self.x2 - length, self.y1, self.x2, self.y2)
             if self.direction == 2:
-                self.line.setLine(line.x1(), line.y2() -
-                                  length, line.x2(), line.y2())
+                self.line.setLine(self.x1, self.y2 - length, self.x2, self.y2)
             if self.direction == 1:
-                self.line.setLine(line.x1(), line.y1(),
-                                  line.x1()+length, line.y2())
+                self.line.setLine(self.x1, self.y1, self.x1 + length, self.y2)
         else:
             if self.direction == 8:
-                self.line.setLine(line.x1(), line.y2() - length,
-                                  line.x2(), line.y2())
+                self.line.setLine(self.x1, self.y2 - length, self.x2, self.y2)
             if self.direction == 4:
-                self.line.setLine(line.x1(), line.y1(),
-                                  line.x1() + length, line.y2())
+                self.line.setLine(self.x1, self.y1, self.x1 + length, self.y2)
             if self.direction == 2:
-                self.line.setLine(line.x1(), line.y1(),
-                                  line.x2(), line.y1()+length)
+                self.line.setLine(self.x1, self.y1, self.x2, self.y1 + length)
             if self.direction == 1:
-                self.line.setLine(line.x2() - length, line.y1(),
-                                  line.x2(), line.y2())
+                self.line.setLine(self.x2 - length, self.y1, self.x2, self.y2)
 
     length = Property(float, _length, _setLength)
 
