@@ -1,5 +1,5 @@
-from PySide6.QtCore import QObject, Property
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Qt, QObject, Property, QRect
+from PySide6.QtGui import QPixmap, QColor, QFont
 
 
 class Block(QObject):
@@ -12,17 +12,12 @@ class Block(QObject):
 
         self.exits = {}
 
-        self.pixmap = scene.addPixmap(
-            QPixmap("./images/blocks/" + name + ".png"))
-        self.pixmap.setOffset(self.col*20, self.row*20)
+        scene.addRect(QRect(self.col*20, self.row*20, 60, 60),
+                      Qt.NoPen, QColor(color))
+        text = scene.addSimpleText(name, QFont("Impact", 25))
+        text.setPos(self.col*20+30-text.boundingRect().width()/2,
+                    self.row*20+30-text.boundingRect().height()/2)
+        text.setBrush(QColor(color).darker())
 
     def add_exit(self, name, row, col):
         self.exits[name] = (row, col)
-
-    def _opacity(self):
-        return self.pixmap.opacity()
-
-    def _setOpacity(self, opacity):
-        self.pixmap.setOpacity(opacity)
-
-    opacity = Property(float, _opacity, _setOpacity)
