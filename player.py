@@ -10,8 +10,8 @@ class Player(QObject):
             QRect(0, 0, 6, 6), Qt.NoPen, QColor(color))
         self.m_pixmap.setZValue(9999)
 
-        self.row = col
-        self.col = row
+        self.row = row
+        self.col = col
         self.row_init = row
         self.col_init = col
 
