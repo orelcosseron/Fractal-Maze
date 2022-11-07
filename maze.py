@@ -5,6 +5,14 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QWidget, QGraphicsView, QGraphicsScene, QGraphicsBlurEffect)
 from PySide6.QtGui import QPixmap, QTransform
 from PySide6.QtCore import Qt, Signal, Slot, QPropertyAnimation, QParallelAnimationGroup, QSequentialAnimationGroup, QEasingCurve, QRect, QPointF, QPoint, QSize, Property
+from enum import Enum
+
+
+class Key(Enum):
+    UP = 1
+    DOWN = 2
+    LEFT = 3
+    RIGHT = 4
 
 
 class Maze(QWidget):
@@ -246,19 +254,19 @@ class Maze(QWidget):
             east = tile.type & 4 == 4
             south = tile.type & 2 == 2
             west = tile.type & 1 == 1
-            if key == Qt.Key_Z and north:
+            if key == Key.UP and north:
                 self.player.row -= 1
                 tile.drawPath(8, False)
                 self.tiles[self.player.row][self.player.col].drawPath(2, True)
-            elif key == Qt.Key_D and east:
+            elif key == Key.RIGHT and east:
                 self.player.col += 1
                 tile.drawPath(4, False)
                 self.tiles[self.player.row][self.player.col].drawPath(1, True)
-            elif key == Qt.Key_S and south:
+            elif key == Key.DOWN and south:
                 self.player.row += 1
                 tile.drawPath(2, False)
                 self.tiles[self.player.row][self.player.col].drawPath(8, True)
-            elif key == Qt.Key_Q and west:
+            elif key == Key.LEFT and west:
                 self.player.col -= 1
                 tile.drawPath(1, False)
                 self.tiles[self.player.row][self.player.col].drawPath(4, True)
@@ -268,22 +276,22 @@ class Maze(QWidget):
                 east = 1 in tile.teleporter_reach
                 south = 2 in tile.teleporter_reach
                 west = 3 in tile.teleporter_reach
-                if key == Qt.Key_Z and north:
+                if key == Key.UP and north:
                     self.player.row -= tile.teleporter_reach[0]
                     tile.drawPath(8, False)
                     self.tiles[self.player.row][self.player.col].drawPath(
                         2, True)
-                elif key == Qt.Key_D and east:
+                elif key == Key.RIGHT and east:
                     self.player.col += tile.teleporter_reach[1]
                     tile.drawPath(4, False)
                     self.tiles[self.player.row][self.player.col].drawPath(
                         1, True)
-                elif key == Qt.Key_S and south:
+                elif key == Key.DOWN and south:
                     self.player.row += tile.teleporter_reach[2]
                     tile.drawPath(2, False)
                     self.tiles[self.player.row][self.player.col].drawPath(
                         8, True)
-                elif key == Qt.Key_Q and west:
+                elif key == Key.LEFT and west:
                     self.player.col -= tile.teleporter_reach[3]
                     tile.drawPath(1, False)
                     self.tiles[self.player.row][self.player.col].drawPath(
@@ -296,13 +304,13 @@ class Maze(QWidget):
                 west = 3 in tile.linked_block
 
                 block_name, exit_name = None, None
-                if key == Qt.Key_Z and north:
+                if key == Key.UP and north:
                     block_name, exit_name = tile.linked_block[0]
-                elif key == Qt.Key_D and east:
+                elif key == Key.RIGHT and east:
                     block_name, exit_name = tile.linked_block[1]
-                elif key == Qt.Key_S and south:
+                elif key == Key.DOWN and south:
                     block_name, exit_name = tile.linked_block[2]
-                elif key == Qt.Key_Q and west:
+                elif key == Key.LEFT and west:
                     block_name, exit_name = tile.linked_block[3]
 
                 if block_name is not None:
@@ -328,13 +336,13 @@ class Maze(QWidget):
                 west = 3 in tile.exit_name
 
                 exit_name = None
-                if key == Qt.Key_Z and north:
+                if key == Key.UP and north:
                     exit_name = tile.exit_name[0]
-                if key == Qt.Key_D and east:
+                if key == Key.RIGHT and east:
                     exit_name = tile.exit_name[1]
-                if key == Qt.Key_S and south:
+                if key == Key.DOWN and south:
                     exit_name = tile.exit_name[2]
-                if key == Qt.Key_Q and west:
+                if key == Key.LEFT and west:
                     exit_name = tile.exit_name[3]
 
                 if exit_name is not None:

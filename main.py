@@ -1,6 +1,6 @@
 import sys
 from hud import Hud
-from maze import Maze
+from maze import Maze, Key
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QApplication, QLabel, QPushButton,
@@ -33,8 +33,14 @@ class MainWindow(QWidget):
         self.layout.addWidget(self.reset)
 
     def keyPressEvent(self, event):
-        if event.key() in [Qt.Key_Z, Qt.Key_Q, Qt.Key_D, Qt.Key_S]:
-            self.maze.update_player(event.key())
+        if event.key() == Qt.Key_Z:
+            self.maze.update_player(Key.UP)
+        elif event.key() == Qt.Key_Q:
+            self.maze.update_player(Key.LEFT)
+        elif event.key() == Qt.Key_S:
+            self.maze.update_player(Key.DOWN)
+        elif event.key() == Qt.Key_D:
+            self.maze.update_player(Key.RIGHT)
 
 
 if __name__ == "__main__":
