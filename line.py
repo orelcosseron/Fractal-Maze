@@ -72,12 +72,12 @@ class Line(QObject):
         self.animation.start()
 
     def show(self, inward=True, now=False):
-        if now:
-            self.line.setOpacity(1)
-            return
-        self.inward = inward
         self.line.show()
         self.line.setOpacity(1)
+        if now:
+            self.length = self.full_length
+            return
+        self.inward = inward
         self.m_animation = QPropertyAnimation(
             self,
             b"length",
