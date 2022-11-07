@@ -6,6 +6,6 @@ To launch the game, simply run:
 
     python ./main.py
 
-The game is played using ZQSD (French Keyboard Layout), you can customize the keys in `keyPressEvent` in `main.py` and `update_player` in `maze.py`.
+By default, the game is played using ZQSD (french keyboard layout), but you can customize the keys in `keyPressEvent` in `main.py`.
 
 To create your own fractal maze, you simply have to edit the `labyrinth` file using the pseudocode described in it.
