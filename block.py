@@ -14,7 +14,7 @@ class Block(QObject):
 
         scene.addRect(QRect(self.col*20, self.row*20, 60, 60),
                       Qt.NoPen, QColor(color))
-        text = scene.addSimpleText(name, QFont("Impact", 25))
+        text = scene.addSimpleText(name, QFont("Arial", 25))
         text.setPos(self.col*20+30-text.boundingRect().width()/2,
                     self.row*20+30-text.boundingRect().height()/2)
         text.setBrush(QColor(color).darker())

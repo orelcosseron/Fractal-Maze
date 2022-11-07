@@ -6,7 +6,7 @@ class Hud(QLabel):
     def __init__(self, parent=None):
         QLabel.__init__(self, "Position: 0", parent=parent)
         self.setStyleSheet(
-            "background-color: black; color: white; font-family: Impact; padding:10px")
+            "background-color: black; color: white; padding:10px")
 
     @Slot()
     def reset(self):
