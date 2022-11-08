@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, QObject, Property, QPointF, QPropertyAnimation, QSequentialAnimationGroup, QRect
-from PySide6.QtGui import QPixmap, QColor
+from PySide6.QtCore import QObject, Property, QPointF, QRect, Qt, QPropertyAnimation, QSequentialAnimationGroup
+from PySide6.QtGui import QColor
 
 
 class Player(QObject):

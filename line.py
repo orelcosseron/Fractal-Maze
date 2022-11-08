@@ -1,4 +1,4 @@
-from PySide6.QtCore import QObject, Property, QPropertyAnimation, QSequentialAnimationGroup, QPointF
+from PySide6.QtCore import QObject, Property, QPropertyAnimation, QSequentialAnimationGroup
 from PySide6.QtGui import QColor
 
 

@@ -1,11 +1,12 @@
+from enum import Enum
+
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QGraphicsScene, QGraphicsView, QGraphicsBlurEffect
+from PySide6.QtGui import QTransform, QPixmap
+from PySide6.QtCore import Signal, Property, QPointF, Slot, Qt, QPropertyAnimation, QSequentialAnimationGroup, QRect, QEasingCurve, QParallelAnimationGroup
+
 from tiles import Tile
 from block import Block
 from player import Player
-from PySide6.QtWidgets import (
-    QHBoxLayout, QWidget, QGraphicsView, QGraphicsScene, QGraphicsBlurEffect)
-from PySide6.QtGui import QPixmap, QTransform
-from PySide6.QtCore import Qt, Signal, Slot, QPropertyAnimation, QParallelAnimationGroup, QSequentialAnimationGroup, QEasingCurve, QRect, QPointF, QPoint, QSize, Property
-from enum import Enum
 
 
 class Key(Enum):

@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QObject, Property, QRect
+from PySide6.QtCore import QObject, QRect, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication
 

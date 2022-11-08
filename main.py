@@ -1,13 +1,12 @@
+import os
 import sys
-from hud import Hud
-from maze import Maze, Key
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QApplication, QLabel, QPushButton,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout
 from PySide6.QtGui import QFontDatabase, QFont
 
-import os
+from hud import Hud
+from maze import Maze, Key
 
 
 class MainWindow(QWidget):

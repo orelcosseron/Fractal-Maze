@@ -1,5 +1,6 @@
-from PySide6.QtCore import Qt, QObject, Slot, Property, QPropertyAnimation, QRect
-from PySide6.QtGui import QPixmap, QBrush, QColor, QLinearGradient
+from PySide6.QtCore import QObject, Slot, QRect, Qt
+from PySide6.QtGui import QColor, QLinearGradient
+
 from line import Line
 
 
