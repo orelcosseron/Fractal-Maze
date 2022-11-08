@@ -74,10 +74,10 @@ class Maze(QWidget):
                 continue
 
             if line[:5] == "BLOCK":
-                _, block_name, block_row, block_col, block_color = line.split(
+                _, block_name, block_row, block_col, width, height, block_color = line.split(
                     " ")
                 self.blocks[block_name] = Block(
-                    int(block_row), int(block_col), block_name, block_color, self.scene)
+                    int(block_row), int(block_col), int(width), int(height), block_name, block_color, self.scene)
                 continue
 
             if line[:4] == "LINK":

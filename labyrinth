@@ -21,7 +21,7 @@
 # Example: TELEPORT 00 00 1+4 => Teleport from (0,0) to (0,4) (4 tiles east)
 #
 # BLOCK DESCRIPTION
-# Format: BLOCK name row col #RRGGBB
+# Format: BLOCK name row col width height #RRGGBB
 #
 # EXIT DESCRIPTION
 # Format: EXIT name orientation row col
@@ -30,7 +30,7 @@
 # Format: LINK block_name exit_name row col
 #
 # PLAYER DESCRIPTION
-# Format: PLAYER row col
+# Format: PLAYER row col #RRGGBB
 #
 # ORIENTATION VALUES:
 # 0 => Teleport N
@@ -38,6 +38,7 @@
 # 2 => Teleport S
 # 3 => Teleport W
 
+# COLORS
 OUTSIDE_COLOR #82be38
 BACKGROUND_COLOR #477f1e
 PATH_COLOR #b77c44
@@ -57,14 +58,17 @@ PATH_COLOR #b77c44
 00120705011012050304050509
 00000800001201001205010000
 
+# TELEPORTERS
 TELEPORT 05 09 2+2
 TELEPORT 07 09 0+2
 
-BLOCK A 02 02 #fff7ac
-BLOCK B 02 08 #a3d0e7
-BLOCK C 08 02 #daa5c1
-BLOCK D 08 08 #cbcbcb
+# BLOCKS
+BLOCK A 02 02 03 03 #fff7ac
+BLOCK B 02 08 03 03 #a3d0e7
+BLOCK C 08 02 03 03 #daa5c1
+BLOCK D 08 08 03 03 #cbcbcb
 
+# EXITS
 EXIT 01 0 00 02
 EXIT 02 0 00 06
 EXIT 03 0 00 10
@@ -78,6 +82,7 @@ EXIT 10 3 09 00
 EXIT 11 3 05 00
 EXIT 12 3 02 00
 
+# LINKS
 LINK A 03 01 04
 LINK A 05 03 05
 LINK A 09 05 02
@@ -108,4 +113,5 @@ LINK D 10 10 07
 LINK D 11 09 07
 LINK D 12 08 07
 
+# PLAYER
 PLAYER 01 01 #0000ff
