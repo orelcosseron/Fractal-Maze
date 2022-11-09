@@ -1,8 +1,8 @@
 from enum import Enum
 
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QGraphicsScene, QGraphicsView, QGraphicsBlurEffect
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QGraphicsScene, QGraphicsView
 from PySide6.QtGui import QTransform, QPixmap
-from PySide6.QtCore import Signal, Property, QPointF, Slot, Qt, QPropertyAnimation, QSequentialAnimationGroup, QRect, QEasingCurve, QParallelAnimationGroup
+from PySide6.QtCore import Signal, Property, QPointF, Slot, Qt, QAbstractAnimation, QPropertyAnimation, QSequentialAnimationGroup, QRect, QEasingCurve, QParallelAnimationGroup
 
 from tiles import Tile
 from block import Block
@@ -38,10 +38,13 @@ class Maze(QWidget):
         self.block_stack = ["0"]
         self.win = False
 
+        self.m_animation_zoom = {}
+        self.m_animation_pan = {}
+        self.m_animation_over_block_opacity = {}
+        self.m_animation_over_block_rect = {}
+        self.zoom_animation = {}
+
         self.setLabyrinth()
-        self.setBlur()
-        self.setZoomIn()
-        self.setZoomOut()
 
     def setLabyrinth(self):
         i = 0
@@ -79,6 +82,7 @@ class Maze(QWidget):
                     " ")
                 self.blocks[block_name] = Block(
                     int(block_row), int(block_col), int(width), int(height), block_name, block_color, self.scene)
+                self.setZoom(self.blocks[block_name])
                 continue
 
             if line[:4] == "LINK":
@@ -111,120 +115,84 @@ class Maze(QWidget):
                 self.change_block.connect(tile.refresh)
             i += 1
 
-    def setBlur(self):
-        self.blur_effect = QGraphicsBlurEffect()
-        self.blur_effect.setBlurRadius(0)
-        self.view.setGraphicsEffect(self.blur_effect)
-
-        self.m_animation_blur_in = QPropertyAnimation(
-            self.blur_effect,
-            b"blurRadius",
-            parent=self,
-            duration=175,
-        )
-        self.m_animation_blur_in.setStartValue(0)
-        self.m_animation_blur_in.setEndValue(100)
-
-        self.m_animation_blur_out = QPropertyAnimation(
-            self.blur_effect,
-            b"blurRadius",
-            parent=self,
-            duration=175,
-        )
-        self.m_animation_blur_out.setStartValue(100)
-        self.m_animation_blur_out.setEndValue(0)
-
-        self.blur_animation = QSequentialAnimationGroup()
-        self.blur_animation.addAnimation(self.m_animation_blur_in)
-        self.blur_animation.addAnimation(self.m_animation_blur_out)
-
-    def setZoomIn(self):
+    def setZoom(self, block: Block):
         initial_rect = self.scene.sceneRect()
-        initial_rect_width = initial_rect.width()
-        initial_rect_height = initial_rect.height()
-        zoomed_in_rect = QRect(
-            QPointF(initial_rect.left()+initial_rect_width*0.125,
-                    initial_rect.top()+initial_rect_height*0.125).toPoint(),
-            initial_rect.size().toSize()/0.8)
+        zoomed_in_rect = block.block.boundingRect()
+        zoom_horizontal_ratio = initial_rect.width()/zoomed_in_rect.width()
+        zoom_vertical_ratio = initial_rect.height()/zoomed_in_rect.height()
 
-        self.m_animation_zoom_in_in = QPropertyAnimation(
+        duration = 1000
+        zoom_end = 0.4
+        over_block_fade_out_start = 0.8
+        cut = (zoom_end + over_block_fade_out_start)/2
+
+        self.m_animation_zoom[block.name] = QPropertyAnimation(
             self,
             b"zoom",
             parent=self,
-            duration=175,
+            duration=duration,
         )
-        self.m_animation_zoom_in_in.setStartValue(self.zoom)
-        self.m_animation_zoom_in_in.setEndValue(QPointF(1.25, 1.25))
-        self.m_animation_zoom_in_in.setEasingCurve(QEasingCurve.InOutQuad)
+        self.m_animation_zoom[block.name].setStartValue(self.zoom)
+        self.m_animation_zoom[block.name].setKeyValueAt(
+            zoom_end, QPointF(zoom_horizontal_ratio, zoom_vertical_ratio))
+        self.m_animation_zoom[block.name].setKeyValueAt(
+            cut, QPointF(zoom_horizontal_ratio, zoom_vertical_ratio))
+        self.m_animation_zoom[block.name].setKeyValueAt(
+            cut+0.000001, self.zoom)
+        self.m_animation_zoom[block.name].setEndValue(self.zoom)
 
-        self.m_animation_zoom_in_out = QPropertyAnimation(
-            self,
-            b"zoom",
-            parent=self,
-            duration=175,
-        )
-        self.m_animation_zoom_in_out.setStartValue(QPointF(1.25, 1.25))
-        self.m_animation_zoom_in_out.setEndValue(QPointF(1, 1))
-
-        self.m_animation_pan_in = QPropertyAnimation(
+        self.m_animation_pan[block.name] = QPropertyAnimation(
             self.scene,
             b"sceneRect",
             parent=self,
-            duration=175,
+            duration=duration,
         )
-        self.m_animation_pan_in.setStartValue(initial_rect)
-        self.m_animation_pan_in.setEndValue(zoomed_in_rect)
-        self.m_animation_pan_in.setEasingCurve(QEasingCurve.InOutQuad)
+        self.m_animation_pan[block.name].setStartValue(initial_rect)
+        self.m_animation_pan[block.name].setKeyValueAt(
+            zoom_end, zoomed_in_rect)
+        self.m_animation_pan[block.name].setKeyValueAt(
+            cut, zoomed_in_rect)
+        self.m_animation_pan[block.name].setKeyValueAt(
+            cut+0.000001, initial_rect)
+        self.m_animation_pan[block.name].setEndValue(initial_rect)
 
-        self.m_animation_pan_out = QPropertyAnimation(
-            self.scene,
-            b"sceneRect",
+        self.m_animation_over_block_opacity[block.name] = QPropertyAnimation(
+            block,
+            b"overBlockOpacity",
             parent=self,
-            duration=175,
+            duration=duration
         )
-        self.m_animation_pan_out.setStartValue(
-            zoomed_in_rect)
-        self.m_animation_pan_out.setEndValue(initial_rect)
+        self.m_animation_over_block_opacity[block.name].setStartValue(0)
+        self.m_animation_over_block_opacity[block.name].setKeyValueAt(
+            zoom_end, 1)
+        self.m_animation_over_block_opacity[block.name].setKeyValueAt(
+            over_block_fade_out_start, 1)
+        self.m_animation_over_block_opacity[block.name].setEndValue(0)
 
-        self.m_animation_zoom_1 = QParallelAnimationGroup()
-        self.m_animation_zoom_1.addAnimation(self.m_animation_zoom_in_in)
-        self.m_animation_zoom_1.addAnimation(self.m_animation_pan_in)
-        self.m_animation_zoom_2 = QParallelAnimationGroup()
-        self.m_animation_zoom_2.addAnimation(self.m_animation_zoom_in_out)
-        self.m_animation_zoom_2.addAnimation(self.m_animation_pan_out)
-        self.m_animation_zoom_in = QSequentialAnimationGroup()
-        self.m_animation_zoom_in.addAnimation(self.m_animation_zoom_1)
-        self.m_animation_zoom_in.addAnimation(self.m_animation_zoom_2)
-        self.zoomIn = QParallelAnimationGroup()
-        self.zoomIn.addAnimation(self.m_animation_zoom_in)
-
-    def setZoomOut(self):
-        initial_rect = self.scene.sceneRect()
-
-        self.m_animation_zoom_out_out = QPropertyAnimation(
-            self,
-            b"zoom",
+        self.m_animation_over_block_rect[block.name] = QPropertyAnimation(
+            block,
+            b"overBlockRect",
             parent=self,
-            duration=175,
+            duration=duration
         )
-        self.m_animation_zoom_out_out.setStartValue(self.zoom)
-        self.m_animation_zoom_out_out.setEndValue(QPointF(0.8, 0.8))
-        self.m_animation_zoom_out_out.setEasingCurve(QEasingCurve.InOutQuad)
+        self.m_animation_over_block_rect[block.name].setStartValue(
+            block.block.rect())
+        self.m_animation_over_block_rect[block.name].setKeyValueAt(
+            cut, block.block.rect())
+        self.m_animation_over_block_rect[block.name].setKeyValueAt(
+            cut + 0.000001, self.scene.sceneRect())
+        self.m_animation_over_block_rect[block.name].setEndValue(
+            self.scene.sceneRect())
 
-        self.m_animation_zoom_out_in = QPropertyAnimation(
-            self,
-            b"zoom",
-            parent=self,
-            duration=175,
-        )
-        self.m_animation_zoom_out_in.setStartValue(QPointF(0.8, 0.8))
-        self.m_animation_zoom_out_in.setEndValue(QPointF(1, 1))
-
-        self.m_animation_zoom_out = QSequentialAnimationGroup()
-        self.m_animation_zoom_out.addAnimation(self.m_animation_zoom_out_out)
-        self.m_animation_zoom_out.addAnimation(self.m_animation_zoom_out_in)
-        self.zoomOut = QParallelAnimationGroup()
-        self.zoomOut.addAnimation(self.m_animation_zoom_out)
+        self.zoom_animation[block.name] = QParallelAnimationGroup()
+        self.zoom_animation[block.name].addAnimation(
+            self.m_animation_pan[block.name])
+        self.zoom_animation[block.name].addAnimation(
+            self.m_animation_zoom[block.name])
+        self.zoom_animation[block.name].addAnimation(
+            self.m_animation_over_block_opacity[block.name])
+        self.zoom_animation[block.name].addAnimation(
+            self.m_animation_over_block_rect[block.name])
 
     def _zoom(self):
         return QPointF(self.view.transform().m11(), self.view.transform().m22())
@@ -327,8 +295,9 @@ class Maze(QWidget):
                     self.tiles[self.player.row][self.player.col].drawPath(
                         1 << (3-exit_tile.exitOrientation(exit_name)), True)
                     teleport = link_orientation
-                    self.zoomIn.addAnimation(self.blur_animation)
-                    self.zoomIn.start()
+                    self.zoom_animation[block_name].setDirection(
+                        QAbstractAnimation.Direction().Forward)
+                    self.zoom_animation[block_name].start()
 
             if tile.isExit():
                 north = 0 in tile.exit_name
@@ -355,13 +324,14 @@ class Maze(QWidget):
                             self.player.col = current_block.exits[exit_name][1]
                             tile.drawPath(
                                 1 << (3-tile.exitOrientation(exit_name)), False)
-                            self.block_stack.pop()
+                            block_name = self.block_stack.pop()
+                            self.zoom_animation[block_name].setDirection(
+                                QAbstractAnimation.Direction().Backward)
+                            self.zoom_animation[block_name].start()
                             self.block_changed()
                             self.tiles[self.player.row][self.player.col].drawPath(
                                 1 << (3-((tile.exitOrientation(exit_name) + 2) % 4)), True)
                             teleport = tile.exitOrientation(exit_name)
-                            self.zoomOut.addAnimation(self.blur_animation)
-                            self.zoomOut.start()
                     else:
                         self.win = True
                         self.view.setStyleSheet("background-color: black")

@@ -8,7 +8,7 @@ class Player(QObject):
         QObject.__init__(self, parent)
         self.m_pixmap = scene.addEllipse(
             QRect(0, 0, 6, 6), Qt.NoPen, QColor(color))
-        self.m_pixmap.setZValue(9999)
+        self.m_pixmap.setZValue(5)
 
         self.row = row
         self.col = col
@@ -27,6 +27,14 @@ class Player(QObject):
 
     def move(self, animate=True, teleport=None):
         if animate:
+            self.m_animation = QPropertyAnimation(
+                self,
+                b"pos",
+                parent=self,
+                duration=100,
+            )
+            self.m_animation.setStartValue(self.pos)
+
             if teleport is not None:
                 if teleport == 0:
                     teleport_direction = QPointF(0, -5)
@@ -37,42 +45,17 @@ class Player(QObject):
                 elif teleport == 3:
                     teleport_direction = QPointF(-5, 0)
 
-                self.m_animation_1 = QPropertyAnimation(
-                    self,
-                    b"pos",
-                    parent=self,
-                    duration=50,
-                )
-                self.m_animation_1.setStartValue(self.pos)
-                self.m_animation_1.setEndValue(
-                    self.pos+teleport_direction)
+                self.m_animation.setDuration(200)
+                self.m_animation.setKeyValueAt(
+                    0.25, self.pos+teleport_direction)
+                self.m_animation.setKeyValueAt(
+                    0.75, self.pos+teleport_direction)
+                self.m_animation.setKeyValueAt(0.750001, QPointF(
+                    self.col*20+7, self.row*20+7)-teleport_direction)
 
-                self.m_animation_2 = QPropertyAnimation(
-                    self,
-                    b"pos",
-                    parent=self,
-                    duration=50,
-                )
-                self.m_animation_2.setStartValue(
-                    QPointF(self.col*20+7, self.row*20+7)-teleport_direction)
-                self.m_animation_2.setEndValue(
-                    QPointF(self.col*20+7, self.row*20+7))
-
-                self.m_animation = QSequentialAnimationGroup()
-                self.m_animation.addAnimation(self.m_animation_1)
-                self.m_animation.addAnimation(self.m_animation_2)
-                self.m_animation.start()
-            else:
-                self.m_animation_1 = QPropertyAnimation(
-                    self,
-                    b"pos",
-                    parent=self,
-                    duration=100,
-                )
-                self.m_animation_1.setStartValue(self.pos)
-                self.m_animation_1.setEndValue(
-                    QPointF(self.col*20+7, self.row*20+7))
-                self.m_animation_1.start()
+            self.m_animation.setEndValue(
+                QPointF(self.col*20+7, self.row*20+7))
+            self.m_animation.start()
 
         else:
             self._setPos(QPointF(self.col*20+7, self.row*20+7))
