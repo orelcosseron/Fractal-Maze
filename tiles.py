@@ -10,8 +10,6 @@ class Tile(QObject):
         QObject.__init__(self)
         self.row = row
         self.col = col
-        self.type = tile_type
-        self.is_exit = False
         self.visited = {}
         self.hash = hash("-".join(["0"]))
 
