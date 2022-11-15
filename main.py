@@ -6,7 +6,8 @@ from PySide6.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout
 from PySide6.QtGui import QFontDatabase, QFont
 
 from hud import Hud
-from maze import Maze, Key
+from maze import Maze
+from directions import Direction
 
 
 class MainWindow(QWidget):
@@ -41,13 +42,13 @@ class MainWindow(QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Z:
-            self.maze.update_player(Key.UP)
+            self.maze.update_player(Direction.NORTH)
         elif event.key() == Qt.Key_Q:
-            self.maze.update_player(Key.LEFT)
+            self.maze.update_player(Direction.WEST)
         elif event.key() == Qt.Key_S:
-            self.maze.update_player(Key.DOWN)
+            self.maze.update_player(Direction.SOUTH)
         elif event.key() == Qt.Key_D:
-            self.maze.update_player(Key.RIGHT)
+            self.maze.update_player(Direction.EAST)
 
 
 if __name__ == "__main__":

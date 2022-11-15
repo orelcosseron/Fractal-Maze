@@ -1,19 +1,11 @@
-from enum import Enum
-
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QGraphicsScene, QGraphicsView
 from PySide6.QtGui import QTransform, QPixmap
 from PySide6.QtCore import Signal, Property, QPointF, Slot, Qt, QAbstractAnimation, QPropertyAnimation, QSequentialAnimationGroup, QRect, QEasingCurve, QParallelAnimationGroup
 
+from directions import Direction
 from tiles import Tile
 from block import Block
 from player import Player
-
-
-class Key(Enum):
-    UP = 1
-    DOWN = 2
-    LEFT = 3
-    RIGHT = 4
 
 
 class Maze(QWidget):
@@ -62,6 +54,7 @@ class Maze(QWidget):
                 self.view.setStyleSheet(
                     "background-color: " + self.outside_color)
                 continue
+
             if line[:16] == "BACKGROUND_COLOR":
                 _, self.background_color = line.split(" ")
                 continue
@@ -74,7 +67,7 @@ class Maze(QWidget):
                 _, teleport_row, teleport_col, teleport_spec = line.split(" ")
                 teleport_direction, teleport_reach = teleport_spec.split("+")
                 self.tiles[int(teleport_row)][int(teleport_col)].setTeleporter(
-                    int(teleport_direction), int(teleport_reach))
+                    Direction(int(teleport_direction)), int(teleport_reach))
                 continue
 
             if line[:5] == "BLOCK":
@@ -99,7 +92,7 @@ class Maze(QWidget):
                 _, exit_name, exit_orientation, exit_row, exit_col = line.split(
                     " ")
                 self.tiles[int(exit_row)][int(exit_col)].setExit(
-                    exit_name, int(exit_orientation))
+                    exit_name, Direction(int(exit_orientation)))
                 self.exits[exit_name] = (int(exit_row), int(exit_col))
                 continue
 
@@ -215,133 +208,79 @@ class Maze(QWidget):
             self.zoomOut.addAnimation(self.blur_animation)
             self.zoomOut.start()
 
-    def update_player(self, key):
+    def update_player(self, direction):
         if not self.win:
             teleport = None
             tile = self.tiles[self.player.row][self.player.col]
-            north = tile.type & 8 == 8
-            east = tile.type & 4 == 4
-            south = tile.type & 2 == 2
-            west = tile.type & 1 == 1
-            if key == Key.UP and north:
-                self.player.row -= 1
-                tile.drawPath(8, False)
-                self.tiles[self.player.row][self.player.col].drawPath(2, True)
-            elif key == Key.RIGHT and east:
-                self.player.col += 1
-                tile.drawPath(4, False)
-                self.tiles[self.player.row][self.player.col].drawPath(1, True)
-            elif key == Key.DOWN and south:
-                self.player.row += 1
-                tile.drawPath(2, False)
-                self.tiles[self.player.row][self.player.col].drawPath(8, True)
-            elif key == Key.LEFT and west:
-                self.player.col -= 1
-                tile.drawPath(1, False)
-                self.tiles[self.player.row][self.player.col].drawPath(4, True)
+            if direction.value & tile.type != 0:
+                if direction == Direction.NORTH:
+                    self.player.row -= 1
+                elif direction == Direction.EAST:
+                    self.player.col += 1
+                elif direction == Direction.SOUTH:
+                    self.player.row += 1
+                elif direction == Direction.WEST:
+                    self.player.col -= 1
+                tile.drawPath(direction, False)
+                self.tiles[self.player.row][self.player.col].drawPath(
+                    direction.opposite(), True)
 
-            if tile.isTeleporter():
-                north = 0 in tile.teleporter_reach
-                east = 1 in tile.teleporter_reach
-                south = 2 in tile.teleporter_reach
-                west = 3 in tile.teleporter_reach
-                if key == Key.UP and north:
-                    self.player.row -= tile.teleporter_reach[0]
-                    tile.drawPath(8, False)
-                    self.tiles[self.player.row][self.player.col].drawPath(
-                        2, True)
-                elif key == Key.RIGHT and east:
-                    self.player.col += tile.teleporter_reach[1]
-                    tile.drawPath(4, False)
-                    self.tiles[self.player.row][self.player.col].drawPath(
-                        1, True)
-                elif key == Key.DOWN and south:
-                    self.player.row += tile.teleporter_reach[2]
-                    tile.drawPath(2, False)
-                    self.tiles[self.player.row][self.player.col].drawPath(
-                        8, True)
-                elif key == Key.LEFT and west:
-                    self.player.col -= tile.teleporter_reach[3]
-                    tile.drawPath(1, False)
-                    self.tiles[self.player.row][self.player.col].drawPath(
-                        4, True)
+            if direction in tile.teleporter_reach:
+                if direction == Direction.NORTH:
+                    self.player.row -= tile.teleporter_reach[direction]
+                elif direction == Direction.EAST:
+                    self.player.col += tile.teleporter_reach[direction]
+                elif direction == Direction.SOUTH:
+                    self.player.row += tile.teleporter_reach[direction]
+                elif direction == Direction.WEST:
+                    self.player.col -= tile.teleporter_reach[direction]
+                tile.drawPath(direction, False)
+                self.tiles[self.player.row][self.player.col].drawPath(
+                    direction.opposite(), True)
 
-            if tile.isLink():
-                north = 0 in tile.linked_block
-                east = 1 in tile.linked_block
-                south = 2 in tile.linked_block
-                west = 3 in tile.linked_block
+            if direction in tile.linked_block:
+                block_name, exit_name = tile.linked_block[direction]
+                exit_tile = self.tiles[self.exits[exit_name]
+                                       [0]][self.exits[exit_name][1]]
+                self.player.row = exit_tile.row
+                self.player.col = exit_tile.col
+                tile.drawPath(direction, False)
+                self.block_stack += [block_name]
+                self.block_changed()
+                self.tiles[self.player.row][self.player.col].drawPath(
+                    direction.opposite(), True)
+                teleport = direction
+                self.zoom_animation[block_name].setDirection(
+                    QAbstractAnimation.Direction().Forward)
+                self.zoom_animation[block_name].start()
 
-                block_name, exit_name = None, None
-                if key == Key.UP and north:
-                    block_name, exit_name = tile.linked_block[0]
-                elif key == Key.RIGHT and east:
-                    block_name, exit_name = tile.linked_block[1]
-                elif key == Key.DOWN and south:
-                    block_name, exit_name = tile.linked_block[2]
-                elif key == Key.LEFT and west:
-                    block_name, exit_name = tile.linked_block[3]
+            if direction in tile.exit_name:
+                exit_name = tile.exit_name[direction]
+                if self.block_stack[-1] != '0':
+                    current_block = self.blocks[self.block_stack[-1]]
 
-                if block_name is not None:
-                    exit_tile = self.tiles[self.exits[exit_name]
-                                           [0]][self.exits[exit_name][1]]
-                    link_orientation = (
-                        exit_tile.exitOrientation(exit_name) + 2) % 4
-                    self.player.row = exit_tile.row
-                    self.player.col = exit_tile.col
-                    tile.drawPath(1 << (3-link_orientation), False)
-                    self.block_stack += [block_name]
-                    self.block_changed()
-                    self.tiles[self.player.row][self.player.col].drawPath(
-                        1 << (3-exit_tile.exitOrientation(exit_name)), True)
-                    teleport = link_orientation
-                    self.zoom_animation[block_name].setDirection(
-                        QAbstractAnimation.Direction().Forward)
-                    self.zoom_animation[block_name].start()
-
-            if tile.isExit():
-                north = 0 in tile.exit_name
-                east = 1 in tile.exit_name
-                south = 2 in tile.exit_name
-                west = 3 in tile.exit_name
-
-                exit_name = None
-                if key == Key.UP and north:
-                    exit_name = tile.exit_name[0]
-                if key == Key.RIGHT and east:
-                    exit_name = tile.exit_name[1]
-                if key == Key.DOWN and south:
-                    exit_name = tile.exit_name[2]
-                if key == Key.LEFT and west:
-                    exit_name = tile.exit_name[3]
-
-                if exit_name is not None:
-                    if self.block_stack[-1] != '0':
-                        current_block = self.blocks[self.block_stack[-1]]
-
-                        if exit_name in current_block.exits.keys():
-                            self.player.row = current_block.exits[exit_name][0]
-                            self.player.col = current_block.exits[exit_name][1]
-                            tile.drawPath(
-                                1 << (3-tile.exitOrientation(exit_name)), False)
-                            block_name = self.block_stack.pop()
-                            self.zoom_animation[block_name].setDirection(
-                                QAbstractAnimation.Direction().Backward)
-                            self.zoom_animation[block_name].start()
-                            self.block_changed()
-                            self.tiles[self.player.row][self.player.col].drawPath(
-                                1 << (3-((tile.exitOrientation(exit_name) + 2) % 4)), True)
-                            teleport = tile.exitOrientation(exit_name)
-                    else:
-                        self.win = True
-                        self.view.setStyleSheet("background-color: black")
-                        self.scene.clear()
-                        self.scene.addPixmap(QPixmap("./images/game_over.jpg"))
-                        self.scene.setSceneRect(self.scene.itemsBoundingRect())
-                        self.view.fitInView(
-                            self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
-                        self.game_over.emit(False)
-                        return
+                    if exit_name in current_block.exits.keys():
+                        self.player.row = current_block.exits[exit_name][0]
+                        self.player.col = current_block.exits[exit_name][1]
+                        tile.drawPath(direction, False)
+                        block_name = self.block_stack.pop()
+                        self.zoom_animation[block_name].setDirection(
+                            QAbstractAnimation.Direction().Backward)
+                        self.zoom_animation[block_name].start()
+                        self.block_changed()
+                        self.tiles[self.player.row][self.player.col].drawPath(
+                            direction.opposite(), True)
+                        teleport = direction
+                else:
+                    self.win = True
+                    self.view.setStyleSheet("background-color: black")
+                    self.scene.clear()
+                    self.scene.addPixmap(QPixmap("./images/game_over.jpg"))
+                    self.scene.setSceneRect(self.scene.itemsBoundingRect())
+                    self.view.fitInView(
+                        self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+                    self.game_over.emit(False)
+                    return
 
             self.player.move(teleport=teleport)
 

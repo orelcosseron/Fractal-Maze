@@ -1,24 +1,23 @@
 from PySide6.QtCore import QObject, Property, QPropertyAnimation, QSequentialAnimationGroup
 from PySide6.QtGui import QColor
 
+from directions import Direction
+
 
 class Line(QObject):
-    def __init__(self, row, col, direction, scene):
+    def __init__(self, row, col, orientation, scene):
         QObject.__init__(self)
-        if direction == 8:
-            self.orientation = 0
+        self.orientation = orientation
+        if self.orientation == Direction.NORTH:
             self.line = scene.addLine(
                 col * 20 + 10, row * 20, col * 20 + 10, row * 20 + 10, QColor("red"))
-        elif direction == 4:
-            self.orientation = 1
+        elif self.orientation == Direction.EAST:
             self.line = scene.addLine(
                 col * 20 + 10, row * 20 + 10, col * 20 + 20, row * 20 + 10, QColor("red"))
-        elif direction == 2:
-            self.orientation = 2
+        elif self.orientation == Direction.SOUTH:
             self.line = scene.addLine(
                 col * 20 + 10, row * 20 + 10, col * 20 + 10, row * 20 + 20, QColor("red"))
-        elif direction == 1:
-            self.orientation = 3
+        elif self.orientation == Direction.WEST:
             self.line = scene.addLine(
                 col * 20, row * 20 + 10, col * 20 + 10, row * 20 + 10, QColor("red"))
         self.m_length = 0
@@ -35,13 +34,13 @@ class Line(QObject):
     def setExit(self, exit):
         self.exit = exit
         if self.exit:
-            if self.orientation == 0:
+            if self.orientation == Direction.NORTH:
                 self.y1 -= 5
-            if self.orientation == 1:
+            if self.orientation == Direction.EAST:
                 self.x2 += 5
-            if self.orientation == 2:
+            if self.orientation == Direction.SOUTH:
                 self.y2 += 5
-            if self.orientation == 3:
+            if self.orientation == Direction.WEST:
                 self.x1 -= 5
             self.full_length += 5
 
@@ -49,6 +48,7 @@ class Line(QObject):
         if now:
             self.line.setOpacity(0)
             return
+
         self.inward = not outward
         self.m_animation = QPropertyAnimation(
             self,
@@ -104,23 +104,18 @@ class Line(QObject):
 
     def _setLength(self, length):
         if self.inward:
-            if self.orientation == 0:
-                self.line.setLine(self.x1, self.y1, self.x2, self.y1 + length)
-            if self.orientation == 1:
-                self.line.setLine(self.x2 - length, self.y1, self.x2, self.y2)
-            if self.orientation == 2:
-                self.line.setLine(self.x1, self.y2 - length, self.x2, self.y2)
-            if self.orientation == 3:
-                self.line.setLine(self.x1, self.y1, self.x1 + length, self.y2)
+            direction = self.orientation
         else:
-            if self.orientation == 0:
-                self.line.setLine(self.x1, self.y2 - length, self.x2, self.y2)
-            if self.orientation == 1:
-                self.line.setLine(self.x1, self.y1, self.x1 + length, self.y2)
-            if self.orientation == 2:
-                self.line.setLine(self.x1, self.y1, self.x2, self.y1 + length)
-            if self.orientation == 3:
-                self.line.setLine(self.x2 - length, self.y1, self.x2, self.y2)
+            direction = self.orientation.opposite()
+
+        if direction == Direction.NORTH:
+            self.line.setLine(self.x1, self.y1, self.x2, self.y1 + length)
+        if direction == Direction.EAST:
+            self.line.setLine(self.x2 - length, self.y1, self.x2, self.y2)
+        if direction == Direction.SOUTH:
+            self.line.setLine(self.x1, self.y2 - length, self.x2, self.y2)
+        if direction == Direction.WEST:
+            self.line.setLine(self.x1, self.y1, self.x1 + length, self.y2)
 
     length = Property(float, _length, _setLength)
 

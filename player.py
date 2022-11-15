@@ -1,6 +1,8 @@
 from PySide6.QtCore import QObject, Property, QPointF, QRect, Qt, QPropertyAnimation, QSequentialAnimationGroup
 from PySide6.QtGui import QColor
 
+from directions import Direction
+
 
 class Player(QObject):
 
@@ -36,13 +38,13 @@ class Player(QObject):
             self.m_animation.setStartValue(self.pos)
 
             if teleport is not None:
-                if teleport == 0:
+                if teleport == Direction.NORTH:
                     teleport_direction = QPointF(0, -5)
-                elif teleport == 1:
+                elif teleport == Direction.EAST:
                     teleport_direction = QPointF(5, 0)
-                elif teleport == 2:
+                elif teleport == Direction.SOUTH:
                     teleport_direction = QPointF(0, 5)
-                elif teleport == 3:
+                elif teleport == Direction.WEST:
                     teleport_direction = QPointF(-5, 0)
 
                 self.m_animation.setDuration(200)
