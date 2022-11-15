@@ -200,13 +200,14 @@ class Maze(QWidget):
     def reset(self):
         if not self.win:
             self.player.reset()
-            self.block_stack = ["0"]
             for row in self.tiles:
                 for tile in row:
                     tile.reset()
+            self.zoom_animation[self.block_stack[1]].setDirection(
+                QAbstractAnimation.Direction().Backward)
+            self.zoom_animation[self.block_stack[1]].start()
+            self.block_stack = ["0"]
             self.block_changed()
-            self.zoomOut.addAnimation(self.blur_animation)
-            self.zoomOut.start()
 
     def update_player(self, direction):
         if not self.win:
@@ -243,8 +244,8 @@ class Maze(QWidget):
                 self.zoom_animation[block_name].start()
 
             if direction in tile.exit_name:
-                exit_name = tile.exit_name[direction]
                 if self.block_stack[-1] != '0':
+                    exit_name = tile.exit_name[direction]
                     current_block = self.blocks[self.block_stack[-1]]
 
                     if exit_name in current_block.exits.keys():
@@ -270,7 +271,8 @@ class Maze(QWidget):
                     self.game_over.emit(False)
                     return
 
-            self.player.move(teleport=teleport)
+            if not self.win:
+                self.player.move(teleport=teleport)
 
     def block_changed(self):
         if self.block_stack[-1] == '0':
