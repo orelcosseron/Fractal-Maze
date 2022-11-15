@@ -212,28 +212,16 @@ class Maze(QWidget):
         if not self.win:
             teleport = None
             tile = self.tiles[self.player.row][self.player.col]
-            if direction.value & tile.type != 0:
-                if direction == Direction.NORTH:
-                    self.player.row -= 1
-                elif direction == Direction.EAST:
-                    self.player.col += 1
-                elif direction == Direction.SOUTH:
-                    self.player.row += 1
-                elif direction == Direction.WEST:
-                    self.player.col -= 1
-                tile.drawPath(direction, False)
-                self.tiles[self.player.row][self.player.col].drawPath(
-                    direction.opposite(), True)
 
-            if direction in tile.teleporter_reach:
+            if direction in tile.reach:
                 if direction == Direction.NORTH:
-                    self.player.row -= tile.teleporter_reach[direction]
+                    self.player.row -= tile.reach[direction]
                 elif direction == Direction.EAST:
-                    self.player.col += tile.teleporter_reach[direction]
+                    self.player.col += tile.reach[direction]
                 elif direction == Direction.SOUTH:
-                    self.player.row += tile.teleporter_reach[direction]
+                    self.player.row += tile.reach[direction]
                 elif direction == Direction.WEST:
-                    self.player.col -= tile.teleporter_reach[direction]
+                    self.player.col -= tile.reach[direction]
                 tile.drawPath(direction, False)
                 self.tiles[self.player.row][self.player.col].drawPath(
                     direction.opposite(), True)

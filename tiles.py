@@ -18,16 +18,21 @@ class Tile(QObject):
         scene.addRect(QRect(
             self.col*20, self.row*20, 20, 20), Qt.NoPen, QColor(background_color))
 
+        self.reach = {}
         if tile_type & (Direction.NORTH.value) != 0:
+            self.reach[Direction.NORTH] = 1
             scene.addRect(QRect(self.col * 20 + 5, self.row * 20,
                           10, 15), Qt.NoPen, QColor(path_color))
         if tile_type & (Direction.EAST.value) != 0:
+            self.reach[Direction.EAST] = 1
             scene.addRect(QRect(self.col * 20 + 5, self.row *
                           20 + 5, 15, 10), Qt.NoPen, QColor(path_color))
         if tile_type & (Direction.SOUTH.value) != 0:
+            self.reach[Direction.SOUTH] = 1
             scene.addRect(QRect(self.col * 20 + 5, self.row *
                           20 + 5, 10, 15), Qt.NoPen, QColor(path_color))
         if tile_type & (Direction.WEST.value) != 0:
+            self.reach[Direction.WEST] = 1
             scene.addRect(QRect(self.col * 20,     self.row *
                           20 + 5, 15, 10), Qt.NoPen, QColor(path_color))
 
@@ -48,7 +53,6 @@ class Tile(QObject):
         teleporter_gradient_W.setColorAt(0, QColor(path_color))
         teleporter_gradient_W.setColorAt(1, QColor(path_color).darker(150))
 
-        self.teleporter_reach = {}
         self.teleporters = {}
         self.teleporters[Direction.NORTH] = scene.addRect(QRect(
             self.col * 20 + 5, self.row * 20 - 5, 10, 20), Qt.NoPen, teleporter_gradient_N)
@@ -139,15 +143,12 @@ class Tile(QObject):
             line.hide()
 
     def setTeleporter(self, direction, reach):
-        self.teleporter_reach[direction] = reach
+        self.reach[direction] = reach
         self.teleporters[direction].show()
 
     def unsetTeleporter(self, direction):
-        self.teleporter_reach.pop(direction)
+        self.reach.pop(direction)
         self.teleporters[direction].hide()
-
-    def isTeleporter(self):
-        return len(self.teleporter_reach) > 0
 
     def setLink(self, block_name, exit_tile, exit_name):
         orientation = exit_tile.exitOrientation(exit_name).opposite()
@@ -158,9 +159,6 @@ class Tile(QObject):
         orientation = exit_tile.exitOrientation(exit_name).opposite()
         self.links[orientation].hide()
         self.linked_block.pop(orientation)
-
-    def isLink(self):
-        return len(self.linked_block) > 0
 
     def setExit(self, exit_name=None, orientation=None):
         self.exit_name[orientation] = exit_name
@@ -183,9 +181,6 @@ class Tile(QObject):
         orientation = self.exitOrientation(exit_name)
         self.exit_bg[orientation].hide()
         self.exits_path[orientation].hide()
-
-    def isExit(self):
-        return len(self.exit_name) > 0
 
     def exitOrientation(self, exit_name):
         orientations = list(self.exit_name.keys())
