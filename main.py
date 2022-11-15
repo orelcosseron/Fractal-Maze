@@ -41,13 +41,13 @@ class MainWindow(QWidget):
         self.layout.addWidget(self.reset)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Z:
+        if event.key() in [Qt.Key_Z]:
             self.maze.update_player(Direction.NORTH)
-        elif event.key() == Qt.Key_Q:
+        elif event.key() in [Qt.Key_Q]:
             self.maze.update_player(Direction.WEST)
-        elif event.key() == Qt.Key_S:
+        elif event.key() in [Qt.Key_S]:
             self.maze.update_player(Direction.SOUTH)
-        elif event.key() == Qt.Key_D:
+        elif event.key() in [Qt.Key_D]:
             self.maze.update_player(Direction.EAST)
 
 
