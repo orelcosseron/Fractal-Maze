@@ -27,13 +27,12 @@ class Line(QObject):
         self.y2 = self.line.line().y2()
         self.full_length = 10
         self.line.setOpacity(0)
+        self.line.setZValue(3)
+        self.exit = False
 
-    def setZValue(self, z):
-        self.line.setZValue(z)
-
-    def setExit(self, exit):
-        self.exit = exit
-        if self.exit:
+    def setExit(self):
+        if not self.exit:
+            self.exit = True
             if self.orientation == Direction.NORTH:
                 self.y1 -= 5
             if self.orientation == Direction.EAST:
@@ -43,6 +42,19 @@ class Line(QObject):
             if self.orientation == Direction.WEST:
                 self.x1 -= 5
             self.full_length += 5
+
+    def unsetExit(self):
+        if self.exit:
+            self.exit = False
+            if self.orientation == Direction.NORTH:
+                self.y1 += 5
+            if self.orientation == Direction.EAST:
+                self.x2 -= 5
+            if self.orientation == Direction.SOUTH:
+                self.y2 -= 5
+            if self.orientation == Direction.WEST:
+                self.x1 += 5
+            self.full_length -= 5
 
     def hide(self, outward=True, now=False):
         if now:

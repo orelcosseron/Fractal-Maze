@@ -138,10 +138,6 @@ class Tile(QObject):
         self.lines[Direction.WEST] = Line(
             self.row, self.col, Direction.WEST, scene)
 
-        for line in self.lines.values():
-            line.setZValue(3)
-            line.hide()
-
     def setTeleporter(self, direction, reach):
         self.reach[direction] = reach
         self.teleporters[direction].show()
@@ -164,13 +160,13 @@ class Tile(QObject):
         self.exit_name[orientation] = exit_name
         self.exit_bg[orientation].show()
         self.exits_path[orientation].show()
-        self.lines[orientation].setExit(True)
+        self.lines[orientation].setExit()
 
     def unsetExit(self, orientation=None):
         self.exit_name.pop(orientation)
         self.exit_bg[orientation].hide()
         self.exits_path[orientation].hide()
-        self.lines[orientation].setExit(False)
+        self.lines[orientation].unsetExit()
 
     def showExit(self, exit_name):
         orientation = self.exitOrientation(exit_name)
