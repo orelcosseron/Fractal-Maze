@@ -108,6 +108,7 @@ class Maze(QWidget):
                 self.change_block.connect(tile.refresh)
             i += 1
 
+        self.player.hide()
         for _ in range(5):
             for block in self.blocks.values():
                 for exit in self.exits.keys():
@@ -122,6 +123,7 @@ class Maze(QWidget):
                 block.render(self.scene)
         for exit in self.exits:
             self.tiles[self.exits[exit][0]][self.exits[exit][1]].showExit(exit)
+        self.player.show()
 
     def setZoom(self, block: Block):
         initial_rect = self.scene.sceneRect()

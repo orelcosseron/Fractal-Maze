@@ -8,9 +8,9 @@ class Player(QObject):
 
     def __init__(self, row, col, color, scene, parent=None):
         QObject.__init__(self, parent)
-        self.m_pixmap = scene.addEllipse(
+        self.drawing = scene.addEllipse(
             QRect(0, 0, 6, 6), Qt.NoPen, QColor(color))
-        self.m_pixmap.setZValue(5)
+        self.drawing.setZValue(5)
 
         self.row = row
         self.col = col
@@ -19,11 +19,17 @@ class Player(QObject):
 
         self.move(animate=False)
 
+    def show(self):
+        self.drawing.show()
+
+    def hide(self):
+        self.drawing.hide()
+
     def _pos(self):
-        return self.m_pixmap.pos()
+        return self.drawing.pos()
 
     def _setPos(self, value):
-        self.m_pixmap.setPos(value)
+        self.drawing.setPos(value)
 
     pos = Property(QPointF, _pos, _setPos)
 
