@@ -118,14 +118,14 @@ class Maze(QWidget):
                     else:
                         self.tiles[self.exits[exit][0]
                                    ][self.exits[exit][1]].hideExit(exit)
-                self.scene.render(block.painter)
+                block.pre_render()
             for block in self.blocks.values():
-                block.render(self.scene)
+                block.render()
         for exit in self.exits:
             self.tiles[self.exits[exit][0]][self.exits[exit][1]].showExit(exit)
         self.player.show()
 
-    def setZoom(self, block: Block):
+    def setZoom(self, block):
         initial_rect = self.scene.sceneRect()
         zoomed_in_rect = QRect(
             block.block.pos().toPoint(), block.block.boundingRect().size().toSize())
@@ -182,6 +182,8 @@ class Maze(QWidget):
             for row in self.tiles:
                 for tile in row:
                     tile.reset()
+            for block in self.blocks.values():
+                block.reset()
             self.zoom_animation[self.block_stack[1]].setDirection(
                 QAbstractAnimation.Direction().Backward)
             self.zoom_animation[self.block_stack[1]].start()
@@ -213,8 +215,7 @@ class Maze(QWidget):
                 self.player.row = exit_tile.row
                 self.player.col = exit_tile.col
                 tile.drawPath(direction, False)
-                self.block_stack += [block_name]
-                self.block_changed()
+                self.add_block(block_name)
                 self.tiles[self.player.row][self.player.col].drawPath(
                     direction.opposite(), True)
                 teleport = direction
@@ -231,11 +232,10 @@ class Maze(QWidget):
                         self.player.row = current_block.exits[exit_name][0]
                         self.player.col = current_block.exits[exit_name][1]
                         tile.drawPath(direction, False)
-                        block_name = self.block_stack.pop()
+                        block_name = self.pop_block()
                         self.zoom_animation[block_name].setDirection(
                             QAbstractAnimation.Direction().Backward)
                         self.zoom_animation[block_name].start()
-                        self.block_changed()
                         self.tiles[self.player.row][self.player.col].drawPath(
                             direction.opposite(), True)
                         teleport = direction
@@ -253,7 +253,21 @@ class Maze(QWidget):
             if not self.win:
                 self.player.move(teleport=teleport)
 
+    def add_block(self, block):
+        self.block_stack += [block]
+        self.block_changed()
+
+    def pop_block(self):
+        pop = self.block_stack.pop()
+        self.player.hide()
+        self.blocks[pop].pre_render(hash("-".join(self.block_stack)))
+        self.player.show()
+        self.block_changed()
+        return pop
+
     def block_changed(self):
+        for block in self.blocks.values():
+            block.render(hash("-".join(self.block_stack)))
         if self.block_stack[-1] == '0':
             self.view.setStyleSheet(
                 "background-color: " + self.outside_color)
