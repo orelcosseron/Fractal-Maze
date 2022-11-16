@@ -154,13 +154,13 @@ class Tile(QObject):
         self.links[orientation].hide()
         self.linked_block.pop(orientation)
 
-    def setExit(self, exit_name=None, orientation=None):
+    def setExit(self, exit_name, orientation):
         self.exit_name[orientation] = exit_name
         self.exit_bg[orientation].show()
         self.exits_path[orientation].show()
         self.lines[orientation].setExit()
 
-    def unsetExit(self, orientation=None):
+    def unsetExit(self, orientation):
         self.exit_name.pop(orientation)
         self.exit_bg[orientation].hide()
         self.exits_path[orientation].hide()
