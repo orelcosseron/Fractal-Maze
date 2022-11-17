@@ -1,13 +1,11 @@
 import os
 import sys
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout
 from PySide6.QtGui import QFontDatabase, QFont
 
 from hud import Hud
 from maze import Maze
-from directions import Direction
 
 
 class MainWindow(QWidget):
@@ -40,19 +38,8 @@ class MainWindow(QWidget):
         self.layout.addWidget(self.maze)
         self.layout.addWidget(self.reset)
 
-    def keyPressEvent(self, event):
-        if event.key() in [Qt.Key_Z]:
-            self.maze.update_player(Direction.NORTH)
-        elif event.key() in [Qt.Key_Q]:
-            self.maze.update_player(Direction.WEST)
-        elif event.key() in [Qt.Key_S]:
-            self.maze.update_player(Direction.SOUTH)
-        elif event.key() in [Qt.Key_D]:
-            self.maze.update_player(Direction.EAST)
-
 
 if __name__ == "__main__":
-
     cwd = os.getcwd()
     dname = os.path.dirname(__file__)
     os.chdir(dname)

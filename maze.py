@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QGraphicsScene, QGraphicsView
+from PySide6.QtWidgets import QHBoxLayout, QGraphicsScene, QGraphicsView
 from PySide6.QtGui import QTransform, QPixmap
 from PySide6.QtCore import Signal, Property, QPointF, Slot, Qt, QAbstractAnimation, QPropertyAnimation, QSequentialAnimationGroup, QRect, QEasingCurve, QParallelAnimationGroup
 
@@ -10,21 +10,16 @@ from player import Player
 from time import sleep
 
 
-class Maze(QWidget):
+class Maze(QGraphicsView):
 
     change_block = Signal(list)
     game_over = Signal(bool)
 
     def __init__(self):
-        QWidget.__init__(self)
-
-        self.layout = QHBoxLayout(self)
-        self.layout.setSpacing(0)
         self.scene = QGraphicsScene()
-        self.view = QGraphicsView(self.scene)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.layout.addWidget(self.view)
+        QGraphicsView.__init__(self, self.scene)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.tiles = []
         self.blocks = {}
@@ -51,8 +46,7 @@ class Maze(QWidget):
 
             if line[:13] == "OUTSIDE_COLOR":
                 _, self.outside_color = line.split(" ")
-                self.view.setStyleSheet(
-                    "background-color: " + self.outside_color)
+                self.setStyleSheet("background-color: " + self.outside_color)
                 continue
 
             if line[:16] == "BACKGROUND_COLOR":
@@ -167,11 +161,11 @@ class Maze(QWidget):
             self.m_animation_zoom[block.name])
 
     def _zoom(self):
-        return QPointF(self.view.transform().m11(), self.view.transform().m22())
+        return QPointF(self.transform().m11(), self.transform().m22())
 
     def _setZoom(self, scale):
-        self.view.setTransform(QTransform(scale.x(), self.view.transform().m12(), self.view.transform().m13(), self.view.transform().m21(), scale.y(),
-                                          self.view.transform().m23(), self.view.transform().m31(), self.view.transform().m32(), self.view.transform().m33()))
+        self.setTransform(QTransform(scale.x(), self.transform().m12(), self.transform().m13(), self.transform().m21(), scale.y(),
+                                     self.transform().m23(), self.transform().m31(), self.transform().m32(), self.transform().m33()))
 
     zoom = Property(QPointF, _zoom, _setZoom)
 
@@ -241,11 +235,11 @@ class Maze(QWidget):
                         teleport = direction
                 else:
                     self.win = True
-                    self.view.setStyleSheet("background-color: black")
+                    self.setStyleSheet("background-color: black")
                     self.scene.clear()
                     self.scene.addPixmap(QPixmap("./images/game_over.jpg"))
                     self.scene.setSceneRect(self.scene.itemsBoundingRect())
-                    self.view.fitInView(
+                    self.fitInView(
                         self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
                     self.game_over.emit(False)
                     return
@@ -269,14 +263,14 @@ class Maze(QWidget):
         for block in self.blocks.values():
             block.render(hash("-".join(self.block_stack)))
         if self.block_stack[-1] == '0':
-            self.view.setStyleSheet(
+            self.setStyleSheet(
                 "background-color: " + self.outside_color)
             for exit in self.exits:
                 self.tiles[self.exits[exit][0]
                            ][self.exits[exit][1]].showExit(exit)
         else:
             current_block = self.blocks[self.block_stack[-1]]
-            self.view.setStyleSheet("background-color: " + current_block.color)
+            self.setStyleSheet("background-color: " + current_block.color)
             for exit in self.exits.keys():
                 if exit in current_block.exits.keys():
                     self.tiles[self.exits[exit][0]
@@ -285,3 +279,13 @@ class Maze(QWidget):
                     self.tiles[self.exits[exit][0]
                                ][self.exits[exit][1]].hideExit(exit)
         self.change_block.emit(self.block_stack)
+
+    def keyPressEvent(self, event):
+        if event.key() in [Qt.Key_Z, Qt.Key_W, Qt.Key_I, Qt.Key_Up]:
+            self.update_player(Direction.NORTH)
+        elif event.key() in [Qt.Key_Q, Qt.Key_A, Qt.Key_J, Qt.Key_Left]:
+            self.update_player(Direction.WEST)
+        elif event.key() in [Qt.Key_S, Qt.Key_K, Qt.Key_Down]:
+            self.update_player(Direction.SOUTH)
+        elif event.key() in [Qt.Key_D, Qt.Key_L, Qt.Key_Right]:
+            self.update_player(Direction.EAST)
