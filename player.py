@@ -6,16 +6,18 @@ from directions import Direction
 
 class Player(QObject):
 
-    def __init__(self, row, col, color, scene, parent=None):
+    def __init__(self, row, col, tile_size, color, scene, parent=None):
         QObject.__init__(self, parent)
         self.drawing = scene.addEllipse(
-            QRect(0, 0, 6, 6), Qt.NoPen, QColor(color))
+            QRect(0, 0, tile_size*0.25, tile_size*0.25), Qt.NoPen, QColor(color))
         self.drawing.setZValue(5)
 
         self.row = row
         self.col = col
         self.row_init = row
         self.col_init = col
+
+        self.tile_size = tile_size
 
         self.move(animate=False)
 
@@ -45,13 +47,13 @@ class Player(QObject):
 
             if teleport is not None:
                 if teleport == Direction.NORTH:
-                    teleport_direction = QPointF(0, -5)
+                    teleport_direction = QPointF(0, -self.tile_size * 0.25)
                 elif teleport == Direction.EAST:
-                    teleport_direction = QPointF(5, 0)
+                    teleport_direction = QPointF(self.tile_size * 0.25, 0)
                 elif teleport == Direction.SOUTH:
-                    teleport_direction = QPointF(0, 5)
+                    teleport_direction = QPointF(0, self.tile_size * 0.25)
                 elif teleport == Direction.WEST:
-                    teleport_direction = QPointF(-5, 0)
+                    teleport_direction = QPointF(-self.tile_size * 0.25, 0)
 
                 self.m_animation.setDuration(200)
                 self.m_animation.setKeyValueAt(
@@ -59,14 +61,16 @@ class Player(QObject):
                 self.m_animation.setKeyValueAt(
                     0.75, self.pos+teleport_direction)
                 self.m_animation.setKeyValueAt(0.750001, QPointF(
-                    self.col*20+7, self.row*20+7)-teleport_direction)
+                    self.tile_size * (self.col + 0.375), self.tile_size * (self.row + 0.375)) - teleport_direction)
 
             self.m_animation.setEndValue(
-                QPointF(self.col*20+7, self.row*20+7))
+                QPointF(self.tile_size * (self.col + 0.375),
+                        self.tile_size * (self.row + 0.375)))
             self.m_animation.start()
 
         else:
-            self._setPos(QPointF(self.col*20+7, self.row*20+7))
+            self._setPos(QPointF(self.tile_size * (self.col + 0.375),
+                         self.tile_size * (self.row + 0.375)))
 
     def reset(self):
         self.row = self.row_init

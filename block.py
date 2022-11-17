@@ -4,16 +4,16 @@ from PySide6.QtWidgets import QApplication
 
 
 class Block(QObject):
-    def __init__(self, row, col, width, height, name, color, scene):
+    def __init__(self, row, col, width, height, tile_size, name, color, scene):
         QObject.__init__(self)
 
         self.name = name
         self.color = color
         self.exits = {}
 
-        self.block = scene.addRect(QRect(0, 0, width*20, height*20),
+        self.block = scene.addRect(QRect(0, 0, tile_size * width, tile_size * height),
                                    Qt.NoPen, QColor(color))
-        self.block.setPos(col*20, row*20)
+        self.block.setPos(tile_size * col, tile_size * row)
 
         self.recursion_pixmap = {}
         self.painters = {}

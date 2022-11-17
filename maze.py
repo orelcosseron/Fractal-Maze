@@ -20,6 +20,7 @@ class Maze(QGraphicsView):
         QGraphicsView.__init__(self, self.scene)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setFrameStyle(0)
 
         self.tiles = []
         self.blocks = {}
@@ -32,6 +33,8 @@ class Maze(QGraphicsView):
         self.zoom_animation = {}
 
         self.setLabyrinth()
+        self.setFixedSize(self.scene.width(),
+                          self.scene.height())
 
     def setLabyrinth(self):
         i = 0
@@ -42,6 +45,11 @@ class Maze(QGraphicsView):
             line = line.replace("\n", "").strip()
 
             if line == "" or line[0] == "#":
+                continue
+
+            if line[:9] == "TILE_SIZE":
+                _, tile_size = line.split(" ")
+                self.tile_size = int(tile_size)
                 continue
 
             if line[:13] == "OUTSIDE_COLOR":
@@ -57,6 +65,10 @@ class Maze(QGraphicsView):
                 _, self.path_color = line.split(" ")
                 continue
 
+            if line[:10] == "LINE_COLOR":
+                _, self.line_color = line.split(" ")
+                continue
+
             if line[:8] == "TELEPORT":
                 _, teleport_row, teleport_col, teleport_spec = line.split(" ")
                 teleport_direction, teleport_reach = teleport_spec.split("+")
@@ -68,7 +80,7 @@ class Maze(QGraphicsView):
                 _, block_name, block_row, block_col, width, height, block_color = line.split(
                     " ")
                 self.blocks[block_name] = Block(
-                    int(block_row), int(block_col), int(width), int(height), block_name, block_color, self.scene)
+                    int(block_row), int(block_col), int(width), int(height), self.tile_size, block_name, block_color, self.scene)
                 self.setZoom(self.blocks[block_name])
                 continue
 
@@ -93,10 +105,10 @@ class Maze(QGraphicsView):
             if line[:6] == "PLAYER":
                 _, player_row, player_col, player_color = line.split(" ")
                 self.player = Player(
-                    int(player_row), int(player_col), player_color, self.scene)
+                    int(player_row), int(player_col), self.tile_size, player_color, self.scene)
                 continue
 
-            self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.background_color, self.path_color, self.scene)
+            self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.tile_size, self.background_color, self.path_color, self.line_color, self.scene)
                             for j in range(len(line) >> 1)]]
             for tile in self.tiles[-1]:
                 self.change_block.connect(tile.refresh)

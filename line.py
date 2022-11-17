@@ -5,27 +5,27 @@ from directions import Direction
 
 
 class Line(QObject):
-    def __init__(self, row, col, orientation, scene):
+    def __init__(self, row, col, tile_size, line_color, orientation, scene):
         QObject.__init__(self)
         self.orientation = orientation
         if self.orientation == Direction.NORTH:
             self.line = scene.addLine(
-                col * 20 + 10, row * 20, col * 20 + 10, row * 20 + 10, QColor("red"))
+                tile_size * (col + 0.5), tile_size * row, tile_size * (col + 0.5), tile_size * (row + 0.5), QColor(line_color))
         elif self.orientation == Direction.EAST:
             self.line = scene.addLine(
-                col * 20 + 10, row * 20 + 10, col * 20 + 20, row * 20 + 10, QColor("red"))
+                tile_size * (col + 0.5), tile_size * (row + 0.5), tile_size * (col + 1), tile_size * (row + 0.5), QColor(line_color))
         elif self.orientation == Direction.SOUTH:
             self.line = scene.addLine(
-                col * 20 + 10, row * 20 + 10, col * 20 + 10, row * 20 + 20, QColor("red"))
+                tile_size * (col + 0.5), tile_size * (row + 0.5), tile_size * (col + 0.5), tile_size * (row + 1), QColor(line_color))
         elif self.orientation == Direction.WEST:
             self.line = scene.addLine(
-                col * 20, row * 20 + 10, col * 20 + 10, row * 20 + 10, QColor("red"))
+                tile_size * col, tile_size * (row + 0.5), tile_size * (col + 0.5), tile_size * (row + 0.5), QColor(line_color))
         self.m_length = 0
         self.x1 = self.line.line().x1()
         self.x2 = self.line.line().x2()
         self.y1 = self.line.line().y1()
         self.y2 = self.line.line().y2()
-        self.full_length = 10
+        self.full_length = tile_size * 0.5
         self.line.setOpacity(0)
         self.line.setZValue(3)
         self.exit = False
@@ -34,27 +34,27 @@ class Line(QObject):
         if not self.exit:
             self.exit = True
             if self.orientation == Direction.NORTH:
-                self.y1 -= 5
+                self.y1 -= 0.5 * self.full_length
             if self.orientation == Direction.EAST:
-                self.x2 += 5
+                self.x2 += 0.5 * self.full_length
             if self.orientation == Direction.SOUTH:
-                self.y2 += 5
+                self.y2 += 0.5 * self.full_length
             if self.orientation == Direction.WEST:
-                self.x1 -= 5
-            self.full_length += 5
+                self.x1 -= 0.5 * self.full_length
+            self.full_length *= 1.5
 
     def unsetExit(self):
         if self.exit:
             self.exit = False
             if self.orientation == Direction.NORTH:
-                self.y1 += 5
+                self.y1 += self.full_length / 3
             if self.orientation == Direction.EAST:
-                self.x2 -= 5
+                self.x2 -= self.full_length / 3
             if self.orientation == Direction.SOUTH:
-                self.y2 -= 5
+                self.y2 -= self.full_length / 3
             if self.orientation == Direction.WEST:
-                self.x1 += 5
-            self.full_length -= 5
+                self.x1 += self.full_length / 3
+            self.full_length *= 2 / 3
 
     def hide(self, outward=True, now=False):
         if now:
