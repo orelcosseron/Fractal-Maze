@@ -219,9 +219,10 @@ class Maze(QGraphicsView):
                     tile.reset()
             for block in self.blocks.values():
                 block.reset()
-            self.zoom_animation[self.block_stack[1]].setDirection(
-                QAbstractAnimation.Direction().Backward)
-            self.zoom_animation[self.block_stack[1]].start()
+            if len(self.block_stack) > 1:
+                self.zoom_animation[self.block_stack[1]].setDirection(
+                    QAbstractAnimation.Direction().Backward)
+                self.zoom_animation[self.block_stack[1]].start()
             self.block_stack = ["0"]
             self.block_changed()
 
