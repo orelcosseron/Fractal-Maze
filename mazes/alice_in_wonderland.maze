@@ -1,9 +1,11 @@
-# === LABYRINTH === #
 # This file is used to declare a fractal maze. 
 # You can copy it to create a new maze. To help
 # you do so, each component of the maze is described
 # before being added. You can also add your own
 # commentaries by making a line that start with a #. 
+
+# == ALICE AND THE FRACTAL HEDGE MAZE == #
+# Adapted from Mike Earnest's maze at https://puzzling.stackexchange.com/questions/37675/alice-and-the-fractal-hedge-maze
 
 # COLORS
 # Some global colors are set to personalize the maze. 
