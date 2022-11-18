@@ -1,6 +1,6 @@
 # === LABYRINTH === #
 # This file is used to declare a fractal maze. 
-# You can edit it to create a new maze. To help
+# You can copy it to create a new maze. To help
 # you do so, each component of the maze is described
 # before being added. You can also add your own
 # commentaries by making a line that start with a #. 
