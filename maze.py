@@ -7,8 +7,6 @@ from tiles import Tile
 from block import Block
 from player import Player
 
-from time import sleep
-
 
 class Maze(QGraphicsView):
 
@@ -105,7 +103,7 @@ class Maze(QGraphicsView):
             if line[:6] == "PLAYER":
                 _, player_row, player_col, player_color = line.split(" ")
                 self.player = Player(
-                    int(player_row), int(player_col), self.tile_size, player_color, self.scene)
+                    int(player_row), int(player_col), self.tile_size, player_color, self.path_color, self.scene)
                 continue
 
             self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.tile_size, self.background_color, self.path_color, self.line_color, self.scene)
@@ -117,8 +115,8 @@ class Maze(QGraphicsView):
         self.player.hide()
         for _ in range(5):
             for block in self.blocks.values():
-                for exit in self.exits.keys():
-                    if exit in block.exits.keys():
+                for exit in self.exits:
+                    if exit in block.exits:
                         self.tiles[self.exits[exit][0]
                                    ][self.exits[exit][1]].showExit(exit)
                     else:
@@ -199,30 +197,34 @@ class Maze(QGraphicsView):
     def update_player(self, direction):
         if not self.win:
             teleport = None
-            tile = self.tiles[self.player.row][self.player.col]
+            tile = self.tiles[int(self.player.coordinates.y())
+                              ][int(self.player.coordinates.x())]
 
             if direction in tile.reach:
                 if direction == Direction.NORTH:
-                    self.player.row -= tile.reach[direction]
+                    self.player.coordinates += QPointF(
+                        0, -tile.reach[direction])
                 elif direction == Direction.EAST:
-                    self.player.col += tile.reach[direction]
+                    self.player.coordinates += QPointF(
+                        tile.reach[direction], 0)
                 elif direction == Direction.SOUTH:
-                    self.player.row += tile.reach[direction]
+                    self.player.coordinates += QPointF(
+                        0, tile.reach[direction])
                 elif direction == Direction.WEST:
-                    self.player.col -= tile.reach[direction]
+                    self.player.coordinates += QPointF(
+                        -tile.reach[direction], 0)
                 tile.drawPath(direction, False)
-                self.tiles[self.player.row][self.player.col].drawPath(
+                self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
                     direction.opposite(), True)
 
             if direction in tile.linked_block:
                 block_name, exit_name = tile.linked_block[direction]
                 exit_tile = self.tiles[self.exits[exit_name]
                                        [0]][self.exits[exit_name][1]]
-                self.player.row = exit_tile.row
-                self.player.col = exit_tile.col
+                self.player.coordinates = QPointF(exit_tile.coordinates)
                 tile.drawPath(direction, False)
                 self.add_block(block_name)
-                self.tiles[self.player.row][self.player.col].drawPath(
+                self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
                     direction.opposite(), True)
                 teleport = direction
                 self.zoom_animation[block_name].setDirection(
@@ -235,14 +237,14 @@ class Maze(QGraphicsView):
                     current_block = self.blocks[self.block_stack[-1]]
 
                     if exit_name in current_block.exits.keys():
-                        self.player.row = current_block.exits[exit_name][0]
-                        self.player.col = current_block.exits[exit_name][1]
+                        self.player.coordinates = QPointF(
+                            current_block.exits[exit_name])
                         tile.drawPath(direction, False)
                         block_name = self.pop_block()
                         self.zoom_animation[block_name].setDirection(
                             QAbstractAnimation.Direction().Backward)
                         self.zoom_animation[block_name].start()
-                        self.tiles[self.player.row][self.player.col].drawPath(
+                        self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
                             direction.opposite(), True)
                         teleport = direction
                 else:

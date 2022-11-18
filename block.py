@@ -1,4 +1,4 @@
-from PySide6.QtCore import QObject, QRect, Qt
+from PySide6.QtCore import QObject, QRect, Qt, QPointF
 from PySide6.QtGui import QColor, QPixmap, QPainter
 from PySide6.QtWidgets import QApplication
 
@@ -19,7 +19,7 @@ class Block(QObject):
         self.painters = {}
 
     def add_exit(self, name, row, col):
-        self.exits[name] = (row, col)
+        self.exits[name] = QPointF(col, row)
 
     def pre_render(self, position="Default"):
         if position not in self.recursion_pixmap:

@@ -5,9 +5,11 @@ from directions import Direction
 
 
 class Line(QObject):
-    def __init__(self, row, col, tile_size, line_color, orientation, scene):
+    def __init__(self, coordinates, tile_size, line_color, orientation, scene):
         QObject.__init__(self)
         self.orientation = orientation
+        row = coordinates.y()
+        col = coordinates.x()
         if self.orientation == Direction.NORTH:
             self.line = scene.addLine(
                 tile_size * (col + 0.5), tile_size * row, tile_size * (col + 0.5), tile_size * (row + 0.5), QColor(line_color))
