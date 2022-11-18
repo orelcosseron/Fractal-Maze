@@ -1,6 +1,6 @@
 import sys
 
-from PySide6.QtCore import QFileInfo, QDir
+from PySide6.QtCore import QFileInfo, QDir, Slot
 from PySide6.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout, QComboBox
 from PySide6.QtGui import QFontDatabase, QFont
 
@@ -34,6 +34,8 @@ class MainWindow(QWidget):
         self.maze = Maze(self.maze_list.itemText(0))
 
         self.maze_list.currentTextChanged.connect(self.maze.setLabyrinth)
+        self.maze_list.currentTextChanged.connect(self.reactivate_reset)
+        self.maze_list.currentTextChanged.connect(self.hud.reset)
 
         self.reset = QPushButton("Reset")
         self.reset.setStyleSheet(
@@ -50,6 +52,10 @@ class MainWindow(QWidget):
         self.layout.addWidget(self.hud)
         self.layout.addWidget(self.maze)
         self.layout.addWidget(self.reset)
+
+    @ Slot()
+    def reactivate_reset(self, _str):
+        self.reset.setEnabled(True)
 
 
 if __name__ == "__main__":

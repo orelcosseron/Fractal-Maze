@@ -9,7 +9,7 @@ class Hud(QLabel):
             "background-color: black; color: white; padding:10px; font-size:16px")
 
     @Slot()
-    def reset(self):
+    def reset(self, _str=""):
         self.setText("Position: 0")
 
     @Slot()
