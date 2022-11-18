@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QHBoxLayout, QGraphicsScene, QGraphicsView
 from PySide6.QtGui import QTransform, QPixmap
-from PySide6.QtCore import Signal, Property, QPointF, Slot, Qt, QAbstractAnimation, QPropertyAnimation, QSequentialAnimationGroup, QRect, QEasingCurve, QParallelAnimationGroup
+from PySide6.QtCore import Signal, Property, QPointF, Slot, Qt, QAbstractAnimation, QPropertyAnimation, QSequentialAnimationGroup, QRect, QEasingCurve, QParallelAnimationGroup, QFileInfo, QFile, QIODevice, QTextStream
 
 from directions import Direction
 from tiles import Tile
@@ -14,7 +14,7 @@ class Maze(QGraphicsView):
     change_block = Signal(list)
     game_over = Signal(bool)
 
-    def __init__(self):
+    def __init__(self, maze_name):
         self.scene = QGraphicsScene()
         QGraphicsView.__init__(self, self.scene)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -33,16 +33,20 @@ class Maze(QGraphicsView):
         self.m_animation_pan = {}
         self.zoom_animation = {}
 
-        self.setLabyrinth()
+        self.setLabyrinth(maze_name)
         self.setFixedSize(self.scene.width(),
                           self.scene.height())
 
-    def setLabyrinth(self):
+    def setLabyrinth(self, maze_name):
+        maze_name = "_".join([word.lower()
+                              for word in maze_name.split(" ")])
+        f = QFile(QFileInfo(__file__).absolutePath() +
+                  "/mazes/" + maze_name + ".maze")
+        f.open(QIODevice.ReadOnly)
+        lines = QTextStream(f)
         i = 0
-        f = open(r"./labyrinth", "r")
-        lines = f.readlines()
-
-        for line in lines:
+        while not lines.atEnd():
+            line = lines.readLine()
             line = line.replace("\n", "").strip()
 
             if line == "" or line[0] == "#":
@@ -149,6 +153,7 @@ class Maze(QGraphicsView):
         for trophy in self.trophies:
             trophy.show()
         self.player.show()
+        f.close()
 
     def setZoom(self, block):
         initial_rect = self.scene.sceneRect()

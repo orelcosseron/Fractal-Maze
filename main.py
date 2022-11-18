@@ -1,7 +1,7 @@
-import os
 import sys
 
-from PySide6.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout
+from PySide6.QtCore import QFileInfo, QDir
+from PySide6.QtWidgets import QWidget, QApplication, QPushButton, QVBoxLayout, QComboBox
 from PySide6.QtGui import QFontDatabase, QFont
 
 from hud import Hud
@@ -13,15 +13,25 @@ class MainWindow(QWidget):
         QWidget.__init__(self)
         self.setStyleSheet("background-color: #c0c0c0")
 
+        dname = QFileInfo(__file__).absolutePath()
         QFontDatabase.addApplicationFont(
             dname + "/fonts/Digital7Mono-Yz9J4.ttf")
         font = QFont("Digital-7 Mono")
         font.setStyleHint(QFont.Monospace)
         QApplication.setFont(font)
 
+        self.maze_list = QComboBox()
+        mazes = QDir(dname + "/mazes", "*.maze")
+        for maze in mazes.entryList():
+            maze_name, _ = maze.split(".")
+            maze_name = " ".join([word.capitalize()
+                                 for word in maze_name.split("_")])
+            self.maze_list.addItem(maze_name)
+        self.maze_list.setStyleSheet("background-color: black; color: white")
+
         self.hud = Hud()
 
-        self.maze = Maze()
+        self.maze = Maze(self.maze_list.itemText(0))
 
         self.reset = QPushButton("Reset")
         self.reset.setStyleSheet(
@@ -34,16 +44,13 @@ class MainWindow(QWidget):
         self.maze.game_over.connect(self.reset.setEnabled)
 
         self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.maze_list)
         self.layout.addWidget(self.hud)
         self.layout.addWidget(self.maze)
         self.layout.addWidget(self.reset)
 
 
 if __name__ == "__main__":
-    cwd = os.getcwd()
-    dname = os.path.dirname(__file__)
-    os.chdir(dname)
-
     app = QApplication(sys.argv)
 
     main_window = MainWindow()
@@ -51,4 +58,3 @@ if __name__ == "__main__":
     main_window.setFixedSize(main_window.size())
 
     sys.exit(app.exec())
-    os.chdir(cwd)
