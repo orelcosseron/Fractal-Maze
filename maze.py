@@ -93,12 +93,13 @@ class Maze(QGraphicsView):
 
             if line[:4] == "LINK":
                 _, block_name, exit_name, link_row, link_col = line.split(" ")
+                block_path = block_name.split("+")
                 exit_tile = self.tiles[self.exits[exit_name]
                                        [0]][self.exits[exit_name][1]]
                 self.tiles[int(link_row)][int(link_col)].setLink(
-                    block_name, exit_tile, exit_name)
-                self.blocks[block_name].add_exit(
-                    exit_name, int(link_row), int(link_col))
+                    block_path[-1], exit_tile, exit_name)
+                self.blocks[block_path[-1]].add_exit(
+                    exit_name, int(link_row), int(link_col), block_path)
                 continue
 
             if line[:4] == "EXIT":
@@ -255,7 +256,7 @@ class Maze(QGraphicsView):
                                        [0]][self.exits[exit_name][1]]
                 self.player.coordinates = QPointF(exit_tile.coordinates)
                 tile.drawPath(direction, False)
-                self.add_block(block_name)
+                self.add_blocks(self.blocks[block_name].block_path[exit_name])
                 self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
                     direction.opposite(), True)
                 teleport = direction
@@ -268,11 +269,12 @@ class Maze(QGraphicsView):
                     exit_name = tile.exit_name[direction]
                     current_block = self.blocks[self.block_stack[-1]]
 
-                    if exit_name in current_block.exits.keys():
+                    if exit_name in current_block.exits.keys() and current_block.block_path[exit_name] == self.block_stack[-len(current_block.block_path[exit_name]):]:
                         self.player.coordinates = QPointF(
                             current_block.exits[exit_name])
                         tile.drawPath(direction, False)
-                        block_name = self.pop_block()
+                        block_name = self.pop_block(
+                            len(current_block.block_path[exit_name]))
                         self.zoom_animation[block_name].setDirection(
                             QAbstractAnimation.Direction().Backward)
                         self.zoom_animation[block_name].start()
@@ -300,14 +302,15 @@ class Maze(QGraphicsView):
             self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
         self.game_over.emit(False)
 
-    def add_block(self, block):
-        self.block_stack += [block]
+    def add_blocks(self, blocks):
+        self.block_stack += blocks
         self.block_changed()
 
-    def pop_block(self):
-        pop = self.block_stack.pop()
+    def pop_block(self, length):
         self.player.hide()
-        self.blocks[pop].pre_render(hash("-".join(self.block_stack)))
+        for _ in range(length):
+            pop = self.block_stack.pop()
+            self.blocks[pop].pre_render(hash("-".join(self.block_stack)))
         self.player.show()
         self.block_changed()
         return pop
@@ -334,7 +337,7 @@ class Maze(QGraphicsView):
             current_block = self.blocks[self.block_stack[-1]]
             self.setStyleSheet("background-color: " + current_block.color)
             for exit in self.exits.keys():
-                if exit in current_block.exits.keys():
+                if exit in current_block.exits.keys() and current_block.block_path[exit] == self.block_stack[-len(current_block.block_path[exit]):]:
                     self.tiles[self.exits[exit][0]
                                ][self.exits[exit][1]].showExit(exit)
                 else:

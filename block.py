@@ -17,9 +17,12 @@ class Block(QObject):
 
         self.recursion_pixmap = {}
         self.painters = {}
+        self.block_path = {}
 
-    def add_exit(self, name, row, col):
+    def add_exit(self, name, row, col, block_path=None):
         self.exits[name] = QPointF(col, row)
+        self.block_path[name] = block_path if block_path is not None else [
+            self.name]
 
     def pre_render(self, position="Default"):
         if position not in self.recursion_pixmap:
