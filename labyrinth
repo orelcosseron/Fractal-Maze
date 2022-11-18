@@ -32,6 +32,21 @@
 # PLAYER DESCRIPTION
 # Format: PLAYER row col #RRGGBB
 #
+# COLOR DESCRIPTION
+# Format: COLOR_NAME #RRGGBB
+#
+# SIZE DESCRIPTION
+# Format: TILE_SIZE size
+#
+# TROPHY DESCRIPTION
+# Trophies are an optional component of the maze. 
+# Reaching a trophy wins the game. 
+# Trophies can only be placed on the topmost level of the maze.
+# If no trophies are set, reaching an exit on the topmost level
+# of the maze wins the game. 
+# Trophies must be declared before any exit.
+# Format: TROPHY row col #RRGGBB
+#
 # ORIENTATION VALUES:
 # 8 => Teleport N
 # 4 => Teleport E
@@ -87,6 +102,8 @@ BLOCK A 02 02 03 03 #fff7ac
 BLOCK B 02 08 03 03 #a3d0e7
 BLOCK C 08 02 03 03 #daa5c1
 BLOCK D 08 08 03 03 #cbcbcb
+
+# TROPHIES
 
 # EXITS
 EXIT 01 8 00 01

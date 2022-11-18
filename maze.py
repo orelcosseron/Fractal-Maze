@@ -6,6 +6,7 @@ from directions import Direction
 from tiles import Tile
 from block import Block
 from player import Player
+from trophy import Trophy
 
 
 class Maze(QGraphicsView):
@@ -23,6 +24,8 @@ class Maze(QGraphicsView):
         self.tiles = []
         self.blocks = {}
         self.exits = {}
+        self.trophies = []
+        self.winning_positions = []
         self.block_stack = ["0"]
         self.win = False
 
@@ -106,6 +109,14 @@ class Maze(QGraphicsView):
                     int(player_row), int(player_col), self.tile_size, player_color, self.path_color, self.scene)
                 continue
 
+            if line[:6] == "TROPHY":
+                _, trophy_row, trophy_col, trophy_color = line.split(" ")
+                self.trophies += [Trophy(int(trophy_row),
+                                         int(trophy_col), trophy_color, self.tile_size, self.scene)]
+                self.winning_positions += [
+                    QPointF(int(trophy_col), int(trophy_row))]
+                continue
+
             self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.tile_size, self.background_color, self.path_color, self.line_color, self.scene)
                             for j in range(len(line) >> 1)]]
             for tile in self.tiles[-1]:
@@ -113,6 +124,8 @@ class Maze(QGraphicsView):
             i += 1
 
         self.player.hide()
+        for trophy in self.trophies:
+            trophy.hide()
         for _ in range(5):
             for block in self.blocks.values():
                 for exit in self.exits:
@@ -126,7 +139,15 @@ class Maze(QGraphicsView):
             for block in self.blocks.values():
                 block.render()
         for exit in self.exits:
-            self.tiles[self.exits[exit][0]][self.exits[exit][1]].showExit(exit)
+            if len(self.trophies) == 0:
+                self.tiles[self.exits[exit][0]
+                           ][self.exits[exit][1]].showExit(exit)
+            else:
+                self.tiles[self.exits[exit][0]
+                           ][self.exits[exit][1]].hideExit(exit)
+
+        for trophy in self.trophies:
+            trophy.show()
         self.player.show()
 
     def setZoom(self, block):
@@ -248,18 +269,24 @@ class Maze(QGraphicsView):
                             direction.opposite(), True)
                         teleport = direction
                 else:
-                    self.win = True
-                    self.setStyleSheet("background-color: black")
-                    self.scene.clear()
-                    self.scene.addPixmap(QPixmap("./images/game_over.jpg"))
-                    self.scene.setSceneRect(self.scene.itemsBoundingRect())
-                    self.fitInView(
-                        self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
-                    self.game_over.emit(False)
-                    return
+                    if len(self.trophies) == 0:
+                        self._game_over()
+                        return
 
             if not self.win:
                 self.player.move(teleport=teleport)
+                if self.block_stack[-1] == '0' and self.player.coordinates in self.winning_positions:
+                    self._game_over()
+
+    def _game_over(self):
+        self.win = True
+        self.setStyleSheet("background-color: black")
+        self.scene.clear()
+        self.scene.addPixmap(QPixmap("./images/game_over.jpg"))
+        self.scene.setSceneRect(self.scene.itemsBoundingRect())
+        self.fitInView(
+            self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+        self.game_over.emit(False)
 
     def add_block(self, block):
         self.block_stack += [block]
@@ -280,9 +307,18 @@ class Maze(QGraphicsView):
             self.setStyleSheet(
                 "background-color: " + self.outside_color)
             for exit in self.exits:
-                self.tiles[self.exits[exit][0]
-                           ][self.exits[exit][1]].showExit(exit)
+                if len(self.trophies) == 0:
+                    self.tiles[self.exits[exit][0]
+                               ][self.exits[exit][1]].showExit(exit)
+                else:
+                    self.tiles[self.exits[exit][0]
+                               ][self.exits[exit][1]].hideExit(exit)
+            for trophy in self.trophies:
+                trophy.show()
+
         else:
+            for trophy in self.trophies:
+                trophy.hide()
             current_block = self.blocks[self.block_stack[-1]]
             self.setStyleSheet("background-color: " + current_block.color)
             for exit in self.exits.keys():
