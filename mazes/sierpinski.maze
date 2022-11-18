@@ -17,10 +17,10 @@
 # These colors must be set before declaring any component of the maze. 
 # Format: COLOR_NAME #RRGGBB
 
-OUTSIDE_COLOR #ffffff
-BACKGROUND_COLOR #ffffff
-PATH_COLOR #00ffff
-LINE_COLOR #ff0000
+OUTSIDE_COLOR #c0c0c0
+BACKGROUND_COLOR #c0c0c0
+PATH_COLOR #3bb33b
+LINE_COLOR #7e61ff
 
 # SIZE DESCRIPTION
 # It is possible to set the size of the tiles to adjust the rendering of the 
@@ -104,7 +104,7 @@ TELEPORT 20 08 1+2
 # When used, trophies must be declared before any exit.
 # Format: TROPHY row col #RRGGBB
 
-TROPHY 14 09 #ff00ff
+TROPHY 14 09 #b33b77
 
 # EXIT DESCRIPTION
 # An exit allows the player to move outside the block they are 
@@ -124,8 +124,8 @@ EXIT 07 2 21 07
 # Blocks must be declared before any link is added to them.
 # Format: BLOCK name row col width height #RRGGBB
 
-BLOCK UP 00 00 11 11 #ffffff
-BLOCK RIGHT 11 11 11 11 #ffffff
+BLOCK UP 00 00 11 11 #c0c0c0
+BLOCK RIGHT 11 11 11 11 #c0c0c0
 
 # LINK DESCRIPTION
 # A link allows the player to move inside a block. 
@@ -146,4 +146,4 @@ LINK RIGHT+UP 05 16 10
 # The player is the in-game avatar of the actual player. 
 # Format: PLAYER row col #RRGGBB
 
-PLAYER 12 07 #0000ff
+PLAYER 12 07 #FFB57A
