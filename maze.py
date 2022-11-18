@@ -293,7 +293,8 @@ class Maze(QGraphicsView):
         self.win = True
         self.setStyleSheet("background-color: black")
         self.scene.clear()
-        self.scene.addPixmap(QPixmap("./images/game_over.jpg"))
+        self.scene.addPixmap(
+            QPixmap(QFileInfo(__file__).absolutePath() + "/images/game_over.jpg"))
         self.scene.setSceneRect(self.scene.itemsBoundingRect())
         self.fitInView(
             self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
