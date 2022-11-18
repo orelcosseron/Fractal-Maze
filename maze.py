@@ -15,12 +15,19 @@ class Maze(QGraphicsView):
     game_over = Signal(bool)
 
     def __init__(self, maze_name):
-        self.scene = QGraphicsScene()
-        QGraphicsView.__init__(self, self.scene)
+        QGraphicsView.__init__(self)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setFrameStyle(0)
 
+        self.scene = QGraphicsScene()
+        self.setLabyrinth(maze_name)
+
+    @ Slot()
+    def setLabyrinth(self, maze_name):
+        self.scene.clear()
+        self.scene = QGraphicsScene()
+        self.setTransform(QTransform())
         self.tiles = []
         self.blocks = {}
         self.exits = {}
@@ -33,11 +40,6 @@ class Maze(QGraphicsView):
         self.m_animation_pan = {}
         self.zoom_animation = {}
 
-        self.setLabyrinth(maze_name)
-        self.setFixedSize(self.scene.width(),
-                          self.scene.height())
-
-    def setLabyrinth(self, maze_name):
         maze_name = "_".join([word.lower()
                               for word in maze_name.split(" ")])
         f = QFile(QFileInfo(__file__).absolutePath() +
@@ -154,6 +156,9 @@ class Maze(QGraphicsView):
             trophy.show()
         self.player.show()
         f.close()
+
+        self.setScene(self.scene)
+        self.setFixedSize(self.scene.sceneRect().size().toSize())
 
     def setZoom(self, block):
         initial_rect = self.scene.sceneRect()

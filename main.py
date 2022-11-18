@@ -33,6 +33,8 @@ class MainWindow(QWidget):
 
         self.maze = Maze(self.maze_list.itemText(0))
 
+        self.maze_list.currentTextChanged.connect(self.maze.setLabyrinth)
+
         self.reset = QPushButton("Reset")
         self.reset.setStyleSheet(
             ":enabled{background-color: black; color: white; margin-left:50%; margin-right: 50%} :disabled{background-color:#c0c0c0; color:#c0c0c0; border:0px}")

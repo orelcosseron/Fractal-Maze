@@ -43,3 +43,8 @@ class Block(QObject):
                 self.painters.pop(name)
                 self.recursion_pixmap.pop(name)
         self.render(self.block.scene())
+
+    def __del__(self):
+        for name in list(self.recursion_pixmap.keys()):
+            self.painters.pop(name)
+            self.recursion_pixmap.pop(name)
