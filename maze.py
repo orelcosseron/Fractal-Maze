@@ -39,6 +39,8 @@ class Maze(QGraphicsView):
         self.m_animation_zoom = {}
         self.m_animation_pan = {}
         self.zoom_animation = {}
+        self.block_change_animation = QSequentialAnimationGroup()
+        self.animation_current_stack = []
 
         maze_name = "_".join([word.lower()
                               for word in maze_name.split(" ")])
@@ -220,12 +222,7 @@ class Maze(QGraphicsView):
                     tile.reset()
             for block in self.blocks.values():
                 block.reset()
-            if len(self.block_stack) > 1:
-                self.zoom_animation[self.block_stack[1]].setDirection(
-                    QAbstractAnimation.Direction().Backward)
-                self.zoom_animation[self.block_stack[1]].start()
-            self.block_stack = ["0"]
-            self.block_changed()
+            self.remove_block(len(self.block_stack) - 1)
 
     def update_player(self, direction):
         if not self.win:
@@ -260,9 +257,6 @@ class Maze(QGraphicsView):
                 self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
                     direction.opposite(), True)
                 teleport = direction
-                self.zoom_animation[block_name].setDirection(
-                    QAbstractAnimation.Direction().Forward)
-                self.zoom_animation[block_name].start()
 
             if direction in tile.exit_name:
                 if self.block_stack[-1] != '0':
@@ -273,11 +267,9 @@ class Maze(QGraphicsView):
                         self.player.coordinates = QPointF(
                             current_block.exits[exit_name])
                         tile.drawPath(direction, False)
-                        block_name = self.pop_block(
+                        self.remove_block(
                             len(current_block.block_path[exit_name]))
-                        self.zoom_animation[block_name].setDirection(
-                            QAbstractAnimation.Direction().Backward)
-                        self.zoom_animation[block_name].start()
+
                         self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
                             direction.opposite(), True)
                         teleport = direction
@@ -304,16 +296,36 @@ class Maze(QGraphicsView):
 
     def add_blocks(self, blocks):
         self.block_stack += blocks
+        for block in self.animation_current_stack:
+            self.zoom_animation[block] = self.block_change_animation.takeAnimation(
+                0)
+        self.animation_current_stack = blocks
+        for block in self.animation_current_stack:
+            self.block_change_animation.addAnimation(
+                self.zoom_animation[block])
+        self.block_change_animation.setDirection(
+            QAbstractAnimation.Direction().Forward)
+        self.block_change_animation.start()
         self.block_changed()
 
-    def pop_block(self, length):
+    def remove_block(self, length):
         self.player.hide()
+        for block in self.animation_current_stack:
+            self.zoom_animation[block] = self.block_change_animation.takeAnimation(
+                0)
+        self.animation_current_stack = []
         for _ in range(length):
             pop = self.block_stack.pop()
             self.blocks[pop].pre_render(hash("-".join(self.block_stack)))
+            self.animation_current_stack = [pop] + self.animation_current_stack
+        for block in self.animation_current_stack:
+            self.block_change_animation.addAnimation(
+                self.zoom_animation[block])
+        self.block_change_animation.setDirection(
+            QAbstractAnimation.Direction().Backward)
+        self.block_change_animation.start()
         self.player.show()
         self.block_changed()
-        return pop
 
     def block_changed(self):
         for block in self.blocks.values():
