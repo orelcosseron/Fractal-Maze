@@ -215,73 +215,70 @@ class Maze(QGraphicsView):
 
     @ Slot()
     def reset(self):
-        if not self.win:
-            self.player.reset()
-            for row in self.tiles:
-                for tile in row:
-                    tile.reset()
-            for block in self.blocks.values():
-                block.reset()
-            self.remove_block(len(self.block_stack) - 1)
+        self.player.reset()
+        for row in self.tiles:
+            for tile in row:
+                tile.reset()
+        for block in self.blocks.values():
+            block.reset()
+        self.remove_block(len(self.block_stack) - 1)
 
     def update_player(self, direction):
-        if not self.win:
-            teleport = None
-            tile = self.tiles[int(self.player.coordinates.y())
-                              ][int(self.player.coordinates.x())]
+        teleport = None
+        tile = self.tiles[int(self.player.coordinates.y())
+                          ][int(self.player.coordinates.x())]
 
-            if direction in tile.reach:
-                if direction == Direction.NORTH:
-                    self.player.coordinates += QPointF(
-                        0, -tile.reach[direction])
-                elif direction == Direction.EAST:
-                    self.player.coordinates += QPointF(
-                        tile.reach[direction], 0)
-                elif direction == Direction.SOUTH:
-                    self.player.coordinates += QPointF(
-                        0, tile.reach[direction])
-                elif direction == Direction.WEST:
-                    self.player.coordinates += QPointF(
-                        -tile.reach[direction], 0)
-                tile.drawPath(direction, False)
-                self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
-                    direction.opposite(), True)
+        if direction in tile.reach:
+            if direction == Direction.NORTH:
+                self.player.coordinates += QPointF(
+                    0, -tile.reach[direction])
+            elif direction == Direction.EAST:
+                self.player.coordinates += QPointF(
+                    tile.reach[direction], 0)
+            elif direction == Direction.SOUTH:
+                self.player.coordinates += QPointF(
+                    0, tile.reach[direction])
+            elif direction == Direction.WEST:
+                self.player.coordinates += QPointF(
+                    -tile.reach[direction], 0)
+            tile.drawPath(direction, False)
+            self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
+                direction.opposite(), True)
 
-            if direction in tile.linked_block:
-                block_name, exit_name = tile.linked_block[direction]
-                exit_tile = self.tiles[self.exits[exit_name]
-                                       [0]][self.exits[exit_name][1]]
-                self.player.coordinates = QPointF(exit_tile.coordinates)
-                tile.drawPath(direction, False)
-                self.add_blocks(self.blocks[block_name].block_path[exit_name])
-                self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
-                    direction.opposite(), True)
-                teleport = direction
+        if direction in tile.linked_block:
+            block_name, exit_name = tile.linked_block[direction]
+            exit_tile = self.tiles[self.exits[exit_name]
+                                   [0]][self.exits[exit_name][1]]
+            self.player.coordinates = QPointF(exit_tile.coordinates)
+            tile.drawPath(direction, False)
+            self.add_blocks(self.blocks[block_name].block_path[exit_name])
+            self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
+                direction.opposite(), True)
+            teleport = direction
 
-            if direction in tile.exit_name:
-                if self.block_stack[-1] != '0':
-                    exit_name = tile.exit_name[direction]
-                    current_block = self.blocks[self.block_stack[-1]]
+        if direction in tile.exit_name:
+            if self.block_stack[-1] != '0':
+                exit_name = tile.exit_name[direction]
+                current_block = self.blocks[self.block_stack[-1]]
 
-                    if exit_name in current_block.exits.keys() and current_block.block_path[exit_name] == self.block_stack[-len(current_block.block_path[exit_name]):]:
-                        self.player.coordinates = QPointF(
-                            current_block.exits[exit_name])
-                        tile.drawPath(direction, False)
-                        self.remove_block(
-                            len(current_block.block_path[exit_name]))
+                if exit_name in current_block.exits.keys() and current_block.block_path[exit_name] == self.block_stack[-len(current_block.block_path[exit_name]):]:
+                    self.player.coordinates = QPointF(
+                        current_block.exits[exit_name])
+                    tile.drawPath(direction, False)
+                    self.remove_block(
+                        len(current_block.block_path[exit_name]))
 
-                        self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
-                            direction.opposite(), True)
-                        teleport = direction
-                else:
-                    if len(self.trophies) == 0:
-                        self._game_over()
-                        return
-
-            if not self.win:
-                self.player.move(teleport=teleport)
-                if self.block_stack[-1] == '0' and self.player.coordinates in self.winning_positions:
+                    self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
+                        direction.opposite(), True)
+                    teleport = direction
+            else:
+                if len(self.trophies) == 0:
                     self._game_over()
+                    return
+
+        self.player.move(teleport=teleport)
+        if self.block_stack[-1] == '0' and self.player.coordinates in self.winning_positions:
+            self._game_over()
 
     def _game_over(self):
         self.win = True
@@ -358,6 +355,8 @@ class Maze(QGraphicsView):
         self.change_block.emit(self.block_stack)
 
     def keyPressEvent(self, event):
+        if self.win:
+            return
         if event.key() in [Qt.Key_Z, Qt.Key_W, Qt.Key_I, Qt.Key_Up]:
             self.update_player(Direction.NORTH)
         elif event.key() in [Qt.Key_Q, Qt.Key_A, Qt.Key_J, Qt.Key_Left]:
