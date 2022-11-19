@@ -283,6 +283,8 @@ class Maze(QGraphicsView):
     def _game_over(self):
         self.win = True
         self.setStyleSheet("background-color: black")
+        for trophy in self.trophies:
+            trophy.m_rotation.stop()
         self.scene.clear()
         self.scene.addPixmap(
             QPixmap(QFileInfo(__file__).absolutePath() + "/images/game_over.jpg"))
