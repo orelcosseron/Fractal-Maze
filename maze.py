@@ -121,7 +121,7 @@ class Maze(QGraphicsView):
             if line[:6] == "TROPHY":
                 _, trophy_row, trophy_col, trophy_color = line.split(" ")
                 self.trophies += [Trophy(int(trophy_row),
-                                         int(trophy_col), trophy_color, self.tile_size, self.scene)]
+                                         int(trophy_col), trophy_color, self.path_color, self.tile_size, self.scene)]
                 self.winning_positions += [
                     QPointF(int(trophy_col), int(trophy_row))]
                 continue
