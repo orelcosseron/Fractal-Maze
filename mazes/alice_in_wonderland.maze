@@ -128,7 +128,10 @@ BLOCK D 08 08 03 03 #cbcbcb
 # LINK DESCRIPTION
 # A link allows the player to move inside a block. 
 # A link must be declared after the block it links to. 
-# Format: LINK block_name exit_name row col
+# A link can also link to a block inside one block or more. 
+# In that case, the chain of blocks must be entirely described,
+# separated by '+'.
+# Format: LINK block_name[+block_name[+block_name[+...]]] exit_name row col
 
 LINK A 03 01 04
 LINK A 05 03 05
