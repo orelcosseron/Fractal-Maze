@@ -40,7 +40,8 @@ class Maze(QGraphicsView):
         self.m_animation_pan = {}
         self.zoom_animation = {}
         self.block_change_animation = QSequentialAnimationGroup()
-        self.animation_current_stack = []
+        self.block_change_animation.finished.connect(self.animation_handler)
+        self.block_buffer = []
 
         maze_name = "_".join([word.lower()
                               for word in maze_name.split(" ")])
@@ -253,7 +254,7 @@ class Maze(QGraphicsView):
             tile.drawPath(direction, False)
             self.add_blocks(self.blocks[block_name].block_path[exit_name])
             self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
-                direction.opposite(), True)
+                direction.opposite(), inward=True, stack=self.block_stack + self.blocks[block_name].block_path[exit_name])
             teleport = direction
 
         if direction in tile.exit_name:
@@ -269,7 +270,7 @@ class Maze(QGraphicsView):
                         len(current_block.block_path[exit_name]))
 
                     self.tiles[int(self.player.coordinates.y())][int(self.player.coordinates.x())].drawPath(
-                        direction.opposite(), True)
+                        direction.opposite(), inward=True, stack=self.block_stack[:-len(current_block.block_path[exit_name])])
                     teleport = direction
             else:
                 if len(self.trophies) == 0:
@@ -293,71 +294,80 @@ class Maze(QGraphicsView):
             self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
         self.game_over.emit(False)
 
-    def add_blocks(self, blocks):
-        self.block_stack += blocks
-        for block in self.animation_current_stack:
+    @ Slot()
+    def animation_handler(self, init=False):
+        if not init:
+            block, direction = self.block_buffer.pop(0)
             self.zoom_animation[block] = self.block_change_animation.takeAnimation(
                 0)
-        self.animation_current_stack = blocks
-        for block in self.animation_current_stack:
-            self.block_change_animation.addAnimation(
-                self.zoom_animation[block])
-        self.block_change_animation.setDirection(
-            QAbstractAnimation.Direction().Forward)
+            if direction == QAbstractAnimation.Direction().Backward:
+                self.block_stack.pop()
+                self.change_block.emit(self.block_stack)
+            else:
+                self.block_stack += [block]
+
+            for block in self.blocks.values():
+                block.render(hash("-".join(self.block_stack)))
+
+            if self.block_stack[-1] == '0':
+                self.setStyleSheet(
+                    "background-color: " + self.outside_color)
+                for exit in self.exits:
+                    if len(self.trophies) == 0:
+                        self.tiles[self.exits[exit][0]
+                                   ][self.exits[exit][1]].showExit(exit)
+                    else:
+                        self.tiles[self.exits[exit][0]
+                                   ][self.exits[exit][1]].hideExit(exit)
+                for trophy in self.trophies:
+                    trophy.show()
+            else:
+                for trophy in self.trophies:
+                    trophy.hide()
+                current_block = self.blocks[self.block_stack[-1]]
+                self.setStyleSheet("background-color: " + current_block.color)
+                for exit in self.exits:
+                    if exit in current_block.exits and current_block.block_path[exit] == self.block_stack[-len(current_block.block_path[exit]):]:
+                        self.tiles[self.exits[exit][0]
+                                   ][self.exits[exit][1]].showExit(exit)
+                    else:
+                        self.tiles[self.exits[exit][0]
+                                   ][self.exits[exit][1]].hideExit(exit)
+
+        if len(self.block_buffer) == 0:
+            return
+
+        block, direction = self.block_buffer[0]
+        self.block_change_animation.addAnimation(self.zoom_animation[block])
+        if direction == QAbstractAnimation.Direction().Backward:
+            self.player.hide()
+            self.blocks[block].pre_render(
+                hash("-".join(self.block_stack[:-1])))
+            self.player.show()
+
+        if direction == QAbstractAnimation.Direction().Forward:
+            self.change_block.emit(self.block_stack + [block])
+
+        self.block_change_animation.setDirection(direction)
         self.block_change_animation.start()
-        self.block_changed()
+
+    def add_block_to_zoom_animation(self, block, direction):
+        self.block_buffer += [(block, direction)]
+        if len(self.block_buffer) == 1:
+            self.animation_handler(init=True)
+
+    def add_blocks(self, blocks):
+        for block in blocks:
+            self.add_block_to_zoom_animation(
+                block, QAbstractAnimation.Direction().Forward)
 
     def remove_block(self, length):
-        self.player.hide()
-        for block in self.animation_current_stack:
-            self.zoom_animation[block] = self.block_change_animation.takeAnimation(
-                0)
-        self.animation_current_stack = []
-        for _ in range(length):
-            pop = self.block_stack.pop()
-            self.blocks[pop].pre_render(hash("-".join(self.block_stack)))
-            self.animation_current_stack = [pop] + self.animation_current_stack
-        for block in self.animation_current_stack:
-            self.block_change_animation.addAnimation(
-                self.zoom_animation[block])
-        self.block_change_animation.setDirection(
-            QAbstractAnimation.Direction().Backward)
-        self.block_change_animation.start()
-        self.player.show()
-        self.block_changed()
-
-    def block_changed(self):
-        for block in self.blocks.values():
-            block.render(hash("-".join(self.block_stack)))
-        if self.block_stack[-1] == '0':
-            self.setStyleSheet(
-                "background-color: " + self.outside_color)
-            for exit in self.exits:
-                if len(self.trophies) == 0:
-                    self.tiles[self.exits[exit][0]
-                               ][self.exits[exit][1]].showExit(exit)
-                else:
-                    self.tiles[self.exits[exit][0]
-                               ][self.exits[exit][1]].hideExit(exit)
-            for trophy in self.trophies:
-                trophy.show()
-
-        else:
-            for trophy in self.trophies:
-                trophy.hide()
-            current_block = self.blocks[self.block_stack[-1]]
-            self.setStyleSheet("background-color: " + current_block.color)
-            for exit in self.exits.keys():
-                if exit in current_block.exits.keys() and current_block.block_path[exit] == self.block_stack[-len(current_block.block_path[exit]):]:
-                    self.tiles[self.exits[exit][0]
-                               ][self.exits[exit][1]].showExit(exit)
-                else:
-                    self.tiles[self.exits[exit][0]
-                               ][self.exits[exit][1]].hideExit(exit)
-        self.change_block.emit(self.block_stack)
+        for block in self.block_stack[-length:][::-1]:
+            self.add_block_to_zoom_animation(
+                block, QAbstractAnimation.Direction().Backward)
 
     def keyPressEvent(self, event):
-        if self.win:
+        if self.win or self.block_change_animation.state() == QAbstractAnimation.State().Running:
             return
         if event.key() in [Qt.Key_Z, Qt.Key_W, Qt.Key_I, Qt.Key_Up]:
             self.update_player(Direction.NORTH)

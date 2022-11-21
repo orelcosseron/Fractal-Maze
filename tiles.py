@@ -180,15 +180,16 @@ class Tile(QObject):
         index = list(self.exit_name.values()).index(exit_name)
         return orientations[index]
 
-    def drawPath(self, direction, inward=True):
-        if self.hash in self.visited.keys():
-            if self.visited[self.hash] & direction.value != 0:
+    def drawPath(self, direction, inward=True, stack=None):
+        h = self.hash if stack is None else hash("-".join(stack))
+        if h in self.visited.keys():
+            if self.visited[h] & direction.value != 0:
                 self.lines[direction].hide(inward)
             else:
                 self.lines[direction].show(inward)
-            self.visited[self.hash] ^= direction.value
+            self.visited[h] ^= direction.value
         else:
-            self.visited[self.hash] = direction.value
+            self.visited[h] = direction.value
             self.lines[direction].show(inward)
 
     @ Slot()
