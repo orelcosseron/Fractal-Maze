@@ -100,6 +100,7 @@ TELEPORT 12 06 8+2
 # EXIT DESCRIPTION
 # An exit allows the player to move outside the block they are 
 # currently in and to leave the maze if there is no trophies.
+# Exits must be declared before any link can be made.
 # Format: EXIT name orientation row col
 
 EXIT 01 8 00 01
