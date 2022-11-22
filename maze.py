@@ -364,6 +364,8 @@ class Maze(QGraphicsView):
                 block, QAbstractAnimation.Direction().Forward)
 
     def remove_block(self, length):
+        if length == 0:
+            return
         for block in self.block_stack[-length:][::-1]:
             self.add_block_to_zoom_animation(
                 block, QAbstractAnimation.Direction().Backward)

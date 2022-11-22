@@ -218,3 +218,4 @@ class Tile(QObject):
     def reset(self):
         self.visited = {}
         self.hash = hash("-".join(["0"]))
+        self.refresh(["0"])
