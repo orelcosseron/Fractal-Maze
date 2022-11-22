@@ -12,8 +12,6 @@ class Player(QObject):
         self.coordinates = QPointF(col, row)
         self.coordinates_init = QPointF(col, row)
 
-        scene.addEllipse(
-            QRect((tile_size * self.coordinates).toPoint(), QSizeF(tile_size, tile_size).toSize()), Qt.NoPen, QColor(path_color))
         self.drawing = scene.addEllipse(
             QRect(QPointF(0, 0).toPoint(), (tile_size * QSizeF(0.25, 0.25)).toSize()), Qt.NoPen, QColor(player_color))
         self.drawing.setZValue(5)

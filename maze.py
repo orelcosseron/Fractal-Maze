@@ -117,6 +117,7 @@ class Maze(QGraphicsView):
                 _, player_row, player_col, player_color = line.split(" ")
                 self.player = Player(
                     int(player_row), int(player_col), self.tile_size, player_color, self.path_color, self.scene)
+                self.tiles[int(player_row)][int(player_col)].setStartingPoint()
                 continue
 
             if line[:6] == "TROPHY":

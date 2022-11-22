@@ -15,6 +15,10 @@ class Tile(QObject):
         scene.addRect(QRect((tile_size * self.coordinates).toPoint(), QSizeF(tile_size,
                       tile_size).toSize()), Qt.NoPen, QColor(background_color))
 
+        self.starting_point = scene.addEllipse(QRect((tile_size * self.coordinates).toPoint(
+        ), QSizeF(tile_size, tile_size).toSize()), Qt.NoPen, QColor(path_color))
+        self.starting_point.hide()
+
         self.reach = {}
         if tile_type & (Direction.NORTH.value) != 0:
             self.reach[Direction.NORTH] = 1
@@ -134,6 +138,12 @@ class Tile(QObject):
             self.coordinates, tile_size, line_color, Direction.SOUTH, scene)
         self.lines[Direction.WEST] = Line(
             self.coordinates, tile_size, line_color, Direction.WEST, scene)
+
+    def setStartingPoint(self):
+        self.starting_point.show()
+
+    def unsetStartingPoint(self):
+        self.starting_point.hide()
 
     def setTeleporter(self, direction, reach):
         self.reach[direction] = reach
