@@ -126,6 +126,7 @@ class Maze(QGraphicsView):
                                          int(trophy_col), trophy_color, self.path_color, self.tile_size, self.scene)]
                 self.winning_positions += [
                     QPointF(int(trophy_col), int(trophy_row))]
+                self.tiles[int(trophy_row)][int(trophy_col)].setStartingPoint()
                 continue
 
             self.tiles += [[Tile(i, j, int(line[2*j:2*j+2]), self.tile_size, self.background_color, self.path_color, self.line_color, self.scene)

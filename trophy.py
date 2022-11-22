@@ -7,9 +7,6 @@ class Trophy(QObject):
     def __init__(self, row, col, trophy_color, path_color, tile_size, scene):
         QObject.__init__(self)
 
-        scene.addEllipse(
-            QRect(tile_size * col, tile_size * row, tile_size, tile_size), Qt.NoPen, QColor(path_color))
-
         self.drawing_1 = scene.addEllipse(
             QRect(-0.4 * tile_size, -0.2 * tile_size, tile_size * 0.8, tile_size * 0.4), QColor(trophy_color))
         self.drawing_1.setPos(tile_size * (col + 0.5), tile_size * (row + 0.5))
