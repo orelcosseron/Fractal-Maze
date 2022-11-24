@@ -65,7 +65,7 @@ TILE_SIZE 40
 # A teleporter allows the player to move in a direction while skipping a few tiles.
 # This is useful e.g for drawing a path that goes under another one.
 # Format: TELEPORT row col orientation+reach
-# Example: TELEPORT 00 00 1+4 => Teleport from (0,0) to (0,4) (4 tiles east)
+# Example: TELEPORT 00 00 4+3 => Teleport from (0,0) to (0,3) (3 tiles east)
 
 TELEPORT 06 02 4+2
 TELEPORT 06 04 1+2
