@@ -27,7 +27,8 @@ class MainWindow(QWidget):
             maze_name = " ".join([word.capitalize()
                                  for word in maze_name.split("_")])
             self.maze_list.addItem(maze_name)
-        self.maze_list.setStyleSheet("background-color: black; color: white")
+        self.maze_list.setStyleSheet(
+            "background-color: black; color: white; font-size: 18px")
 
         self.hud = Hud()
 
