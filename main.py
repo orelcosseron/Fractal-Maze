@@ -31,7 +31,7 @@ class MainWindow(QWidget):
 
         self.hud = Hud()
 
-        self.maze = Maze(self.maze_list.itemText(0))
+        self.maze = Maze(self)
 
         self.maze_list.currentTextChanged.connect(self.maze.setLabyrinth)
         self.maze_list.currentTextChanged.connect(self.reactivate_reset)
@@ -53,6 +53,8 @@ class MainWindow(QWidget):
         self.layout.addWidget(self.maze)
         self.layout.addWidget(self.reset)
 
+        self.maze.setLabyrinth(self.maze_list.itemText(0))
+
     @ Slot()
     def reactivate_reset(self, _str):
         self.reset.setEnabled(True)
@@ -63,6 +65,5 @@ if __name__ == "__main__":
 
     main_window = MainWindow()
     main_window.show()
-    main_window.setFixedSize(main_window.size())
 
     sys.exit(app.exec())

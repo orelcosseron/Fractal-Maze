@@ -14,14 +14,13 @@ class Maze(QGraphicsView):
     change_block = Signal(list)
     game_over = Signal(bool)
 
-    def __init__(self, maze_name):
-        QGraphicsView.__init__(self)
+    def __init__(self, parent=None):
+        QGraphicsView.__init__(self, parent)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setFrameStyle(0)
 
         self.scene = QGraphicsScene()
-        self.setLabyrinth(maze_name)
 
     @ Slot()
     def setLabyrinth(self, maze_name):
@@ -165,6 +164,7 @@ class Maze(QGraphicsView):
 
         self.setScene(self.scene)
         self.setFixedSize(self.scene.sceneRect().size().toSize())
+        self.parent().setFixedSize(self.parent().layout.minimumSize())
 
     def setZoom(self, block):
         initial_rect = self.scene.sceneRect()
