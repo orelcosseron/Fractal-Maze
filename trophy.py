@@ -25,9 +25,7 @@ class Trophy(QObject):
         self.drawing_2.setZValue(5)
         self.drawing_3.setZValue(5)
         self.drawing_4.setZValue(5)
-        self.animate()
 
-    def animate(self):
         self.m_rotation = QPropertyAnimation(
             self,
             b"rotation",

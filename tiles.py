@@ -168,6 +168,15 @@ class Tile(QObject):
         self.exit_bg[orientation].show()
         self.exits_path[orientation].show()
         self.lines[orientation].setExit()
+        if orientation == Direction.NORTH:
+            offset = QPointF(0, -1)
+        elif orientation == Direction.EAST:
+            offset = QPointF(1, 0)
+        elif orientation == Direction.SOUTH:
+            offset = QPointF(0, 1)
+        elif orientation == Direction.WEST:
+            offset = QPointF(-1, 0)
+        return self.coordinates + offset
 
     def unsetExit(self, orientation):
         self.exit_name.pop(orientation)
@@ -190,29 +199,17 @@ class Tile(QObject):
         index = list(self.exit_name.values()).index(exit_name)
         return orientations[index]
 
-    def drawPath(self, direction, inward=True, stack=None):
-        h = self.hash if stack is None else hash("-".join(stack))
-        if h in self.visited.keys():
-            if self.visited[h] & direction.value != 0:
-                self.lines[direction].hide(inward)
-            else:
-                self.lines[direction].show(inward)
-            self.visited[h] ^= direction.value
-        else:
-            self.visited[h] = direction.value
-            self.lines[direction].show(inward)
-
     @ Slot()
     def refresh(self, stack):
         for line in self.lines.values():
-            line.hide(now=True)
+            line.hide()
 
         self.hash = hash("-".join(stack))
 
         if self.hash in self.visited.keys():
             for direction in Direction:
                 if self.visited[self.hash] & direction.value != 0:
-                    self.lines[direction].show(now=True)
+                    self.lines[direction].show()
 
     @ Slot()
     def reset(self):
