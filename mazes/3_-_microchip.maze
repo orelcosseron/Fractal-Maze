@@ -149,6 +149,13 @@ TELEPORT 17 19 1+2
 TELEPORT 19 06 4+2
 TELEPORT 19 08 1+2
 
+# PLAYER DESCRIPTION
+# The player is the in-game avatar of the actual player.
+# The player must be declared before any trophy/exit.
+# Format: PLAYER row col #RRGGBB
+
+PLAYER 13 06 #87632d
+
 # TROPHY DESCRIPTION
 # Trophies are an optional component of the maze. 
 # Reaching a trophy wins the game. 
@@ -229,9 +236,3 @@ LINK C 08 15 16
 LINK C 10 16 14
 LINK C 13 15 11
 LINK C 15 13 11
-
-# PLAYER DESCRIPTION
-# The player is the in-game avatar of the actual player. 
-# Format: PLAYER row col #RRGGBB
-
-PLAYER 13 06 #87632d
